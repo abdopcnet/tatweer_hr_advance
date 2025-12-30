@@ -1,0 +1,32 @@
+{
+ "custom_fields": [],
+ "custom_perms": [],
+ "doctype": "Employee Advance",
+ "links": [],
+ "property_setters": [
+  {
+   "_assign": null,
+   "_comments": null,
+   "_liked_by": null,
+   "_user_tags": null,
+   "creation": "2025-07-16 14:59:57.253223",
+   "default_value": null,
+   "doc_type": "Employee Advance",
+   "docstatus": 0,
+   "doctype_or_field": "DocField",
+   "field_name": "mode_of_payment",
+   "idx": 0,
+   "is_system_generated": 0,
+   "modified": "2025-07-16 14:59:57.253223",
+   "modified_by": "Administrator",
+   "module": null,
+   "name": "Employee Advance-mode_of_payment-link_filters",
+   "owner": "Administrator",
+   "property": "link_filters",
+   "property_type": "JSON",
+   "row_name": null,
+   "value": "[[\"Mode of Payment\",\"type\",\"=\",\"Bank\"]]"
+  }
+ ],
+ "sync_on_migrate": 1
+}

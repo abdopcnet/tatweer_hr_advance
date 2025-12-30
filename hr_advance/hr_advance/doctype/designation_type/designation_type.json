@@ -1,0 +1,141 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:designation_type",
+ "creation": "2024-04-23 14:23:03.030789",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "designation_type",
+  "salary_details_section",
+  "is_it_a_leadership_position",
+  "basic_salary",
+  "responsibility_bonus",
+  "fuel_and_communications_allowance",
+  "distinction_bonus"
+ ],
+ "fields": [
+  {
+   "fieldname": "designation_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Designation Type",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "salary_details_section",
+   "fieldtype": "Section Break",
+   "label": "Salary Details"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_it_a_leadership_position",
+   "fieldtype": "Check",
+   "label": " Is it a leadership position?"
+  },
+  {
+   "fieldname": "basic_salary",
+   "fieldtype": "Currency",
+   "label": "Basic Salary"
+  },
+  {
+   "depends_on": "eval: doc.is_it_a_leadership_position ==1",
+   "fieldname": "responsibility_bonus",
+   "fieldtype": "Currency",
+   "label": "Responsibility Bonus"
+  },
+  {
+   "depends_on": "eval: doc.is_it_a_leadership_position ==1",
+   "fieldname": "fuel_and_communications_allowance",
+   "fieldtype": "Currency",
+   "label": "Fuel and Communications allowance"
+  },
+  {
+   "depends_on": "eval: doc.is_it_a_leadership_position ==0",
+   "fieldname": "distinction_bonus",
+   "fieldtype": "Currency",
+   "label": "Distinction Bonus"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-21 01:41:34.108202",
+ "modified_by": "Administrator",
+ "module": "Hr Advance",
+ "name": "Designation Type",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Payroll Manager",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Payroll Review",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Employee",
+   "share": 1
+  }
+ ],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
