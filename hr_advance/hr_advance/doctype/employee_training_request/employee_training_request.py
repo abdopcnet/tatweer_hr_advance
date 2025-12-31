@@ -10,15 +10,18 @@ class EmployeeTrainingRequest(Document):
     def before_save(self):
         try:
             # Get the maximum allowed requests from HR Settings Single DocType
-            max_employee_request = frappe.db.get_single_value('HR Settings', 'custom_max_employee_requests')
+            max_employee_request = frappe.db.get_single_value(
+                'HR Settings', 'custom_max_employee_requests')
 
             # Ensure max_employee_request is a valid integer
             if max_employee_request is None:
-                frappe.throw(_("Max Employee Requests setting not found in HR Settings. Please configure it."))
+                frappe.throw(
+                    _("Max Employee Requests setting not found in HR Settings. Please configure it."))
             try:
                 max_employee_request = int(max_employee_request)
             except ValueError:
-                frappe.throw(_("Max Employee Requests in HR Settings must be a valid number."))
+                frappe.throw(
+                    _("Max Employee Requests in HR Settings must be a valid number."))
 
             # Count submitted training requests for the current employee
             # docstatus: 1 means 'Submitted'
@@ -27,7 +30,8 @@ class EmployeeTrainingRequest(Document):
                 "Employee Training Request",
                 filters={
                     "employee": self.employee,
-                    "docstatus": 0 # Counting submitted requests. Adjust if policy means 'pending' or 'approved'.
+                    # Counting submitted requests. Adjust if policy means 'pending' or 'approved'.
+                    "docstatus": 0
                 },
                 # We only need the count, so fetching 'name' is sufficient.
                 # Frappe's get_all is optimized for count when only name is needed implicitly.
@@ -47,8 +51,10 @@ class EmployeeTrainingRequest(Document):
             # Re-raise Frappe ValidationErrors directly
             raise
         except Exception as e:
-            # Catch any other unexpected errors during validation logic
-            frappe.msgprint(f"An unexpected error occurred during validation: {e}",
-                           title="Error", indicator="red")
-            frappe.log_error(f"Error in EmployeeTrainingRequest validation for employee {self.employee}: {frappe.get_traceback()}", str(e))
-            frappe.throw(_("An internal error occurred during validation. Please contact your system administrator."))
+            # Function failed completely - log error
+            frappe.log_error(
+                "[employee_training_request.py] method: before_save",
+                "Employee Training Request",
+            )
+            frappe.throw(
+                _("An internal error occurred during validation. Please contact your system administrator."))
