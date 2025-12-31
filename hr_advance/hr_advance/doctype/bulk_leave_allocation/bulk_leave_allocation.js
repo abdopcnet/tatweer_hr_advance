@@ -39,6 +39,7 @@ frappe.ui.form.on('Bulk Leave allocation', {
 					from_date: frm.doc.from_date,
 					to_date: frm.doc.to_date,
 					department: frm.doc.department || null,
+					yearly_leave_type: cint(frm.doc.yearly_leave_type) || 0,
 				},
 				freeze: true,
 				freeze_message: __('Fetching active employees...'),
@@ -58,7 +59,11 @@ frappe.ui.form.on('Bulk Leave allocation', {
 							row.from_date = employee.from_date;
 							row.to_date = employee.to_date;
 							row.carry_forward =
-								employee.carry_forward !== undefined ? employee.carry_forward : 1;
+								employee.carry_forward !== undefined
+									? employee.carry_forward
+									: cint(frm.doc.yearly_leave_type) === 1
+									? 1
+									: 0;
 							row.total_leaves_allocated = employee.total_leaves_allocated || 0;
 
 							// If yearly_leave_type = 1, copy total_leaves_allocated to new_leaves_allocated
