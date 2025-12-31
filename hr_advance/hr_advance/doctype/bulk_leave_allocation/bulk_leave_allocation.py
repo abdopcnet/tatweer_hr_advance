@@ -14,7 +14,7 @@ class BulkLeaveallocation(Document):
 
 
 @frappe.whitelist()
-def get_active_employees(company, leave_type, from_date, to_date, department=None):
+def get_active_employees(company, leave_type, from_date, to_date, department=None, yearly_leave_type=0):
     """
     Get active employees with their leave balances
     """
@@ -44,26 +44,32 @@ def get_active_employees(company, leave_type, from_date, to_date, department=Non
         order_by="employee_name",
     )
 
+    # Determine carry_forward and new_leaves_allocated based on yearly_leave_type
+    yearly_leave_type = int(yearly_leave_type) if yearly_leave_type else 0
+    default_carry_forward = 0 if yearly_leave_type == 0 else 1
+    default_new_leaves_allocated = 0.0
+
     result = []
     for employee in employees:
         # Get unused leaves (carry forward balance) from previous allocations
-        try:
-            unused_leaves = get_carry_forwarded_leaves(
-                employee.name,
-                leave_type,
-                from_date_obj,
-                carry_forward=True,
-            )
-            if unused_leaves is None:
+        # Only if carry_forward is enabled
+        unused_leaves = 0.0
+        if default_carry_forward == 1:
+            try:
+                unused_leaves = get_carry_forwarded_leaves(
+                    employee.name,
+                    leave_type,
+                    from_date_obj,
+                    carry_forward=True,
+                )
+                if unused_leaves is None:
+                    unused_leaves = 0.0
+            except Exception:
                 unused_leaves = 0.0
-        except Exception:
-            unused_leaves = 0.0
 
-        # Default new_leaves_allocated is 0, user can edit it
-        new_leaves_allocated = 0.0
         # Total = unused_leaves (carry forward) + new_leaves_allocated
         total_leaves_allocated = flt(
-            unused_leaves, 2) + flt(new_leaves_allocated, 2)
+            unused_leaves, 2) + flt(default_new_leaves_allocated, 2)
 
         result.append(
             {
@@ -74,8 +80,8 @@ def get_active_employees(company, leave_type, from_date, to_date, department=Non
                 "leave_type": leave_type,
                 "from_date": from_date,
                 "to_date": to_date,
-                "new_leaves_allocated": new_leaves_allocated,
-                "carry_forward": 1,  # Default is 1
+                "new_leaves_allocated": default_new_leaves_allocated,
+                "carry_forward": default_carry_forward,
                 "total_leaves_allocated": flt(total_leaves_allocated, 2),
             }
         )
