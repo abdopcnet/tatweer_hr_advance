@@ -1,114 +1,121 @@
 {
-	"actions": [],
-	"allow_rename": 1,
-	"creation": "2025-12-31 13:10:46.115015",
-	"doctype": "DocType",
-	"editable_grid": 1,
-	"engine": "InnoDB",
-	"field_order": [
-		"employee",
-		"employee_name",
-		"department",
-		"company",
-		"leave_type",
-		"from_date",
-		"to_date",
-		"new_leaves_allocated",
-		"carry_forward",
-		"total_leaves_allocated"
-	],
-	"fields": [
-		{
-			"fieldname": "employee",
-			"fieldtype": "Link",
-			"in_list_view": 1,
-			"label": "Employee",
-			"options": "Employee",
-			"reqd": 1
-		},
-		{
-			"fetch_from": "employee.employee_name",
-			"fieldname": "employee_name",
-			"fieldtype": "Data",
-			"in_list_view": 1,
-			"label": "Employee Name",
-			"read_only": 1
-		},
-		{
-			"fetch_from": "employee.department",
-			"fieldname": "department",
-			"fieldtype": "Link",
-			"in_list_view": 1,
-			"label": "Department",
-			"options": "Department",
-			"read_only": 1
-		},
-		{
-			"fieldname": "new_leaves_allocated",
-			"fieldtype": "Float",
-			"in_list_view": 1,
-			"label": "New Leaves Allocated",
-			"reqd": 1
-		},
-		{
-			"default": "0",
-			"fieldname": "carry_forward",
-			"fieldtype": "Check",
-			"in_list_view": 1,
-			"label": "Carry Forward"
-		},
-		{
-			"fieldname": "total_leaves_allocated",
-			"fieldtype": "Float",
-			"in_list_view": 1,
-			"label": "Total Leaves Allocated",
-			"read_only": 1
-		},
-		{
-			"fieldname": "leave_type",
-			"fieldtype": "Link",
-			"in_list_view": 1,
-			"label": "Leave Type",
-			"options": "Leave Type",
-			"read_only": 1
-		},
-		{
-			"fetch_from": "employee.company",
-			"fieldname": "company",
-			"fieldtype": "Link",
-			"in_list_view": 1,
-			"label": "Company",
-			"options": "Company",
-			"read_only": 1
-		},
-		{
-			"fieldname": "from_date",
-			"fieldtype": "Date",
-			"in_list_view": 1,
-			"label": "From Date",
-			"read_only": 1
-		},
-		{
-			"fieldname": "to_date",
-			"fieldtype": "Date",
-			"in_list_view": 1,
-			"label": "To Date",
-			"read_only": 1
-		}
-	],
-	"grid_page_length": 50,
-	"index_web_pages_for_search": 1,
-	"istable": 1,
-	"links": [],
-	"modified": "2025-12-31 13:16:56.302619",
-	"modified_by": "Administrator",
-	"module": "Hr Advance",
-	"name": "Bulk Leave allocation Table",
-	"owner": "Administrator",
-	"permissions": [],
-	"row_format": "Dynamic",
-	"rows_threshold_for_grid_search": 20,
-	"sort_field": "modified",
-	"sort_order": "DESC",
-	"states": []
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-12-31 15:07:34.811915",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "employee_name",
+  "department",
+  "company",
+  "leave_type",
+  "from_date",
+  "to_date",
+  "new_leaves_allocated",
+  "carry_forward",
+  "total_leaves_allocated"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "fetch_from": "employee.department",
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Department",
+   "options": "Department",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "new_leaves_allocated",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "New Leaves Allocated",
+   "reqd": 1
+  },
+  {
+   "columns": 1,
+   "default": "1",
+   "fieldname": "carry_forward",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Carry Forward",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "total_leaves_allocated",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Total Leaves Allocated",
+   "read_only": 1
+  },
+  {
+   "fieldname": "leave_type",
+   "fieldtype": "Link",
+   "label": "Leave Type",
+   "options": "Leave Type",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fetch_from": "employee.company",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date",
+   "read_only": 1,
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-12-31 15:10:30.038144",
+ "modified_by": "Administrator",
+ "module": "Hr Advance",
+ "name": "Bulk Leave allocation Table",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
 }
