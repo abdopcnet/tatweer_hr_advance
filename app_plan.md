@@ -1,116 +1,96 @@
-# HR Advance - Progress Tracking
+# Progress Tracking
 
 ## Overview
 
-Simple progress tracking for hr_advance app development.
+Simple progress tracking for hr_advance app features and implementation.
 
-## Current Features Status
+## Features List
 
-### ✅ Completed Features
-
-#### Leave Management
-
--   [x] Bulk Leave Allocation DocType
--   [x] Bulk Leave Allocation Table (Child Table)
--   [x] Get Active Employees API
--   [x] Create Bulk Leave Allocations API
--   [x] Yearly Leave Type Logic
--   [x] Carry Forward Support
--   [x] Date Validation
--   [x] Overlap Prevention
--   [x] Leave Allocation List View Button
-
-#### Employee Management
-
--   [x] Employee Override (Custom Naming, Approvers)
--   [x] Experience Calculation (Daily Task)
--   [x] Designation Type DocType
--   [x] Department Type DocType
--   [x] Employee Bank DocType
--   [x] Employee Bank Branch DocType
--   [x] Employee Training Request
--   [x] Training Course Available
--   [x] Course Classification
-
-#### Payroll & Salary
+### Payroll & Salary Management
 
 -   [x] Salary Slip Override
 -   [x] Payroll Entry Override
--   [x] Additional Salary Sum Calculation
 -   [x] Designation Type with Salary Details
+-   [x] Additional Salary Summed Calculation
+-   [x] Custom Basic Salary Field
 
-#### Loans & Advances
+### Employee Management
+
+-   [x] Employee Override
+-   [x] Experience Calculation (Scheduled Task)
+-   [x] Bank Branch Management
+-   [x] Employee Training Request
+-   [x] Employee Onboarding Integration
+
+### Loans & Advances
 
 -   [x] Loan Calculation API
--   [x] Loan Application Enhancements
+-   [x] Loan Application Enhancement
 -   [x] Employee Advance Bank Filter
 
-#### Travel & Expenses
+### Leave & Attendance
 
--   [x] Travel Request Enhancements
+-   [x] Bulk Leave Allocation
+-   [x] Leave Validation (No Earlier Submission)
+-   [x] Attendance Report Enhancement
+-   [x] Exit Permission Request
+-   [x] Carry Forward Support
+
+### Travel & Expenses
+
+-   [x] Travel Request Enhancement
 -   [x] Expense Claim Creation from Travel Request
+-   [x] Travel Request Costing
 
-#### Reports
+### Integration & Automation
+
+-   [x] Purchase Invoice Task Cost Summation
+-   [x] Supplier Status Update (Scheduled Task)
+-   [x] Additional Salaries API Override
+
+### Reports
 
 -   [x] Attendance Report
 -   [x] Exit Permission Report
 
-#### Integration & Automation
+## Implementation Status
 
--   [x] Purchase Invoice Task Cost Summation
--   [x] Supplier Status Update (Daily Task)
--   [x] Leave Application Validation (No Earlier Submission)
+### Completed
 
-### 🔄 In Progress Features
+-   All core DocTypes created
+-   API methods implemented
+-   Scheduled tasks configured
+-   Document event handlers added
+-   Override classes implemented
+-   Client-side JavaScript enhancements
 
--   [ ] Monthly Leave Carry Forward Automation (Last Day of Month)
--   [ ] Enhanced Bulk Leave Allocation Error Handling
--   [ ] Leave Allocation Report Enhancements
+### In Progress
 
-### 📋 Planned Features
+-   Guide files generation (hrms DocTypes)
+-   Documentation completion
 
-#### Leave Management
+### Future Enhancements
 
--   [ ] Automatic Monthly Leave Allocation (2.5 days per month)
--   [ ] Leave Balance Dashboard
--   [ ] Leave Policy Integration for Bulk Allocation
--   [ ] Leave Allocation History Tracking
+-   Advanced reporting features
+-   Additional automation workflows
+-   Enhanced integration capabilities
+-   Mobile app support
+-   Advanced analytics
 
-#### Employee Management
+## Documentation Status
 
--   [ ] Employee Performance Tracking
--   [ ] Employee Training Analytics
--   [ ] Employee Document Management
-
-#### Payroll Enhancements
-
--   [ ] Advanced Salary Component Calculations
--   [ ] Payroll Approval Workflow
--   [ ] Salary Slip Customization
-
-#### Reporting
-
--   [ ] Leave Utilization Report
--   [ ] Employee Attendance Analytics
--   [ ] Training Completion Report
-
-## Technical Debt
-
--   [ ] Code Refactoring for API Methods
--   [ ] Error Handling Improvements
--   [ ] Unit Test Coverage
--   [ ] Documentation Updates
-
-## Known Issues
-
-1. Bulk Leave Allocation requires Leave Policy Assignment for Earned Leaves
-2. Carry Forward calculation needs optimization
-3. Date validation messages need localization
+-   [x] hr_advance DocType guides (11 files)
+-   [ ] hrms DocType guides (150+ files) - In Progress
+-   [x] API tree documentation
+-   [x] File structure documentation
+-   [x] Workflow diagrams
+-   [x] Progress tracking
+-   [ ] README update - Pending
 
 ## Next Steps
 
-1. Implement Monthly Leave Carry Forward Automation
-2. Add Leave Policy Integration to Bulk Allocation
-3. Enhance Error Messages and User Feedback
-4. Add Unit Tests for Critical Functions
-5. Update Documentation with Latest Features
+1. Complete hrms DocType guide files
+2. Update README with guide file links
+3. Add more workflow diagrams
+4. Enhance API documentation
+5. Add code examples
