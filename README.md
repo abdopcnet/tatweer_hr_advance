@@ -130,6 +130,30 @@ Pre-commit is configured to use the following tools for checking and formatting 
 -   prettier
 -   pyupgrade
 
+## Documentation
+
+### Guide Files
+
+Comprehensive guide files are available for all DocTypes in hr_advance and hrms apps:
+
+-   **hr_advance DocTypes**: See individual `.md` files in root directory (e.g., `bulk_leave_allocation.md`, `employee_training_request.md`)
+-   **hrms DocTypes**: See individual `.md` files in root directory (e.g., `leave_allocation.md`, `leave_application.md`, `salary_structure.md`)
+
+### Documentation Files
+
+-   [API Tree](app_api_tree.md) - Complete list of whitelisted API methods
+-   [File Structure](app_file_structure.md) - App directory structure and organization
+-   [Workflow](app_workflow.md) - Workflow diagrams for main processes
+-   [Progress Tracking](app_plan.md) - Feature implementation status
+
+### Quick Start
+
+1. **Bulk Leave Allocation**: See [bulk_leave_allocation.md](bulk_leave_allocation.md)
+2. **Leave Management**: See [leave_allocation.md](leave_allocation.md), [leave_application.md](leave_application.md), [leave_type.md](leave_type.md)
+3. **Payroll Setup**: See [salary_structure.md](salary_structure.md), [salary_structure_assignment.md](salary_structure_assignment.md)
+4. **Employee Onboarding**: See [employee_onboarding.md](employee_onboarding.md)
+5. **Leave Policy**: See [leave_policy.md](leave_policy.md), [leave_policy_assignment.md](leave_policy_assignment.md)
+
 ## License
 
 MIT
