@@ -4,8 +4,9 @@ import frappe
 from hrms.payroll.doctype.payroll_entry.payroll_entry import PayrollEntry
 from hrms.hr.doctype.shift_assignment.shift_assignment import get_actual_start_end_datetime_of_shift
 from frappe.model.document import Document
-import datetime, math
-from frappe.utils import now, cint, get_datetime ,getdate
+import datetime
+import math
+from frappe.utils import now, cint, get_datetime, getdate
 from frappe.utils import add_days, cint, cstr, flt, getdate, rounded, date_diff, money_in_words, formatdate, get_first_day
 from frappe import _
 
@@ -13,24 +14,23 @@ import erpnext
 from frappe.query_builder.functions import Coalesce, Count
 
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
-	get_accounting_dimensions,
+    get_accounting_dimensions,
 )
 from erpnext.accounts.utils import get_fiscal_year
 
 from hrms.payroll.doctype.salary_slip.salary_slip_loan_utils import if_lending_app_installed
 from hrms.payroll.doctype.salary_withholding.salary_withholding import link_bank_entry_in_salary_withholdings
 from frappe.utils import (
-	DATE_FORMAT,
-	add_days,
-	add_to_date,
-	cint,
-	comma_and,
-	date_diff,
-	flt,
-	get_link_to_form,
-	getdate,
+    DATE_FORMAT,
+    add_days,
+    add_to_date,
+    cint,
+    comma_and,
+    date_diff,
+    flt,
+    get_link_to_form,
+    getdate,
 )
-
 
 
 class overrid_payroll_entry(PayrollEntry):
@@ -84,7 +84,7 @@ class overrid_payroll_entry(PayrollEntry):
     #             bank_branch =  frappe.db.get_value("Salary Slip" , emp_slip , 'custom_bank_branch')
     #             # bank_name = employee_details.get("bank_name")
     #             # bank_branch = employee_details.get("custom_bank_branch")
-                
+
     #             # Fallback for missing info in slip
     #             bank_name = bank_name if bank_name else "UNKNOWN_ACCOUNT"
     #             bank_branch = bank_branch if bank_branch else "UNKNOWN_BRANCH"
@@ -100,10 +100,9 @@ class overrid_payroll_entry(PayrollEntry):
     #             # If you group this, the JE line for payroll payable won't be as granular by cost center.
     #             # For this example, we'll use the main self.cost_center for simplicity if no specific employee cost center is passed via `employee_details`.
     #             # If `employee_details` contains a "cost_center", use that. Otherwise, fallback to self.cost_center.
-                
+
     #             # Check if employee_details has a cost_center specific to this employee's payment
     #             employee_specific_cost_center = employee_details.get("cost_center", self.cost_center)
-
 
     #             accounts.append(
     #                 self.update_accounting_dimensions(
@@ -254,7 +253,8 @@ class overrid_payroll_entry(PayrollEntry):
 
                     salary_slip_total -= salary_detail.amount
 
-        total_loan_repayment = self.process_loan_repayments_for_bank_entry(salary_details) or 0
+        total_loan_repayment = self.process_loan_repayments_for_bank_entry(
+            salary_details) or 0
         salary_slip_total -= total_loan_repayment
         print(salary_slip_total)
         print(salary_slip_total)
@@ -268,13 +268,14 @@ class overrid_payroll_entry(PayrollEntry):
         bank_entry = None
         if salary_slip_total > 0:
             remark = "withheld salaries" if for_withheld_salaries else "salaries"
-            bank_entry = self.set_accounting_entries_for_bank_entry_(salary_slip_total, remark)
+            bank_entry = self.set_accounting_entries_for_bank_entry_(
+                salary_slip_total, remark)
 
             if for_withheld_salaries:
-                link_bank_entry_in_salary_withholdings(salary_details, bank_entry.name)
+                link_bank_entry_in_salary_withholdings(
+                    salary_details, bank_entry.name)
 
         return bank_entry
-
 
     def set_accounting_entries_for_bank_entry_(self, total_je_payment_amount, user_remark):
         print("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
@@ -282,19 +283,21 @@ class overrid_payroll_entry(PayrollEntry):
         # and return a list of their names.
 
         payroll_payable_account = self.payroll_payable_account
-        precision = frappe.get_precision("Journal Entry Account", "debit_in_account_currency")
+        precision = frappe.get_precision(
+            "Journal Entry Account", "debit_in_account_currency")
 
         company_currency = erpnext.get_company_currency(self.company)
         accounting_dimensions = get_accounting_dimensions() or []
 
-        created_journal_entries = [] # To store names of all created JEs
+        created_journal_entries = []  # To store names of all created JEs
         accounts = []
         currencies = []
 
-        if self.employee_based_payroll_payable_entries or 1==1:
+        if self.employee_based_payroll_payable_entries or 1 == 1:
             # Step 1: Group employee payments by bank name and branch
             # This 'bank_groups' dict will hold aggregated data for each JE to be created
-            bank_groups = {} # Key: (bank_name, bank_branch), Value: {'total_amount': X, 'employees': [{'name': emp, 'amount': Y, 'cost_center': Z}]}
+            # Key: (bank_name, bank_branch), Value: {'total_amount': X, 'employees': [{'name': emp, 'amount': Y, 'cost_center': Z}]}
+            bank_groups = {}
 
             # Pre-fetch all necessary Salary Slip data for optimization
             # Collect all salary slip names first
@@ -302,14 +305,16 @@ class overrid_payroll_entry(PayrollEntry):
             for employee, employee_details in self.employee_based_payroll_payable_entries.items():
                 # Assuming 'salary_slip' key exists in employee_details and holds the name
                 if employee_details.get("salary_slip"):
-                    salary_slip_names_to_fetch.append(employee_details["salary_slip"])
+                    salary_slip_names_to_fetch.append(
+                        employee_details["salary_slip"])
 
             salary_slips_data = {}
             if salary_slip_names_to_fetch:
                 slips = frappe.db.get_all(
                     "Salary Slip",
                     filters={"name": ("in", salary_slip_names_to_fetch)},
-                    fields=["name", "employee", "bank_name", "custom_bank_branch"],
+                    fields=["name", "employee",
+                            "bank_name", "custom_bank_branch"],
                     as_list=False
                 )
                 for slip in slips:
@@ -319,7 +324,7 @@ class overrid_payroll_entry(PayrollEntry):
             for employee, employee_details in self.employee_based_payroll_payable_entries.items():
                 # Logging from your provided snippet
                 # frappe.log_error(f"Debugging employee_details for {employee}: {employee_details}", "Payroll Entry Bank Grouping Debug")
-                
+
                 employee_payment_amount = (
                     flt(employee_details.get("earnings", 0))
                     - flt(employee_details.get("deductions", 0))
@@ -330,12 +335,15 @@ class overrid_payroll_entry(PayrollEntry):
                 # bank_branch = "UNKNOWN_BRANCH"
 
                 # Get bank details directly from employee_details (payment slip)
-                emp_slip = frappe.db.get_all("Salary Slip" , filters={'payroll_entry' :['=' , self.name] , 'employee' : [ '=' ,employee]})[0]
-                bank_name = frappe.db.get_value("Salary Slip" , emp_slip , 'bank_name')
-                bank_branch =  frappe.db.get_value("Salary Slip" , emp_slip , 'custom_bank_branch')
+                emp_slip = frappe.db.get_all("Salary Slip", filters={'payroll_entry': [
+                                             '=', self.name], 'employee': ['=', employee]})[0]
+                bank_name = frappe.db.get_value(
+                    "Salary Slip", emp_slip, 'bank_name')
+                bank_branch = frappe.db.get_value(
+                    "Salary Slip", emp_slip, 'custom_bank_branch')
                 # bank_name = employee_details.get("bank_name")
                 # bank_branch = employee_details.get("custom_bank_branch")
-                
+
                 # Fallback for missing info in slip
                 bank_name = bank_name if bank_name else "UNKNOWN_ACCOUNT"
                 bank_branch = bank_branch if bank_branch else "UNKNOWN_BRANCH"
@@ -352,12 +360,13 @@ class overrid_payroll_entry(PayrollEntry):
                 if group_key not in bank_groups:
                     bank_groups[group_key] = {
                         "total_amount": 0.0,
-                        "employees_info": [] # List of {'employee': name, 'amount': value, 'cost_center': value}
+                        # List of {'employee': name, 'amount': value, 'cost_center': value}
+                        "employees_info": []
                     }
-                
+
                 bank_groups[group_key]["total_amount"] += employee_payment_amount
                 bank_groups[group_key]["employees_info"].append({
-                    "name": employee, # Renamed 'employee' to 'name' for clarity
+                    "name": employee,  # Renamed 'employee' to 'name' for clarity
                     "amount": employee_payment_amount,
                     "cost_center": employee_details.get("cost_center", self.cost_center)
                 })
@@ -372,19 +381,20 @@ class overrid_payroll_entry(PayrollEntry):
                 new_je = frappe.new_doc("Journal Entry")
                 new_je.voucher_type = "Bank Entry"
                 new_je.company = self.company
-                new_je.posting_date = self.posting_date 
-                new_je.reference_no = self.name # Link back to Payroll Entry
+                new_je.posting_date = self.posting_date
+                new_je.reference_no = self.name  # Link back to Payroll Entry
                 new_je.reference_date = self.posting_date
-                new_je.cheque_no = '' # If applicable
-                new_je.cheque_date = ''# If applicable
-                new_je.project = self.project # If Payroll Entry has a project
+                new_je.cheque_no = ''  # If applicable
+                new_je.cheque_date = ''  # If applicable
+                new_je.project = self.project  # If Payroll Entry has a project
 
                 # Construct the remark for this specific JE
                 je_remark_title = _("Payroll payment for employees transferring to Bank: {0}, Branch: {1}").format(
                     bank_name_for_je, bank_branch_for_je
                 )
-                je_remark_period = _("Period from {0} to {1}").format(self.start_date, self.end_date)
-                
+                je_remark_period = _("Period from {0} to {1}").format(
+                    self.start_date, self.end_date)
+
                 # List individual employees and their amounts in the remark
                 employee_list_for_remark = []
                 for emp_data in employees_in_group:
@@ -394,57 +404,62 @@ class overrid_payroll_entry(PayrollEntry):
                         currency=company_currency
                     )
                     employee_list_for_remark.append(
-                        _("Employee {0} (Amount: {1})").format(emp_data['name'], formatted_emp_amount)
+                        _("Employee {0} (Amount: {1})").format(
+                            emp_data['name'], formatted_emp_amount)
                     )
-                
-                new_je.user_remark = f"{je_remark_title}\n{je_remark_period}\n\n{_('Employees in this group:')}\n" + "\n".join(employee_list_for_remark)
-                new_je.remark = new_je.user_remark # Also set system remark
+
+                new_je.user_remark = f"{je_remark_title}\n{je_remark_period}\n\n{_('Employees in this group:')}\n" + "\n".join(
+                    employee_list_for_remark)
+                new_je.remark = new_je.user_remark  # Also set system remark
 
                 # Add Credit line (from company's payment account)
                 # This credit is for the total amount of this specific bank group
                 exchange_rate_credit, amount_credit = self.get_amount_and_exchange_rate_for_journal_entry(
-                    self.payment_account, group_total_amount, company_currency, [] # Use empty list for currencies here, new_je.get("currencies", []) might not be populated yet
+                    # Use empty list for currencies here, new_je.get("currencies", []) might not be populated yet
+                    self.payment_account, group_total_amount, company_currency, []
                 )
-                
+
                 new_je.append("accounts",
-                    self.update_accounting_dimensions(
-                        {
-                            "account": self.payment_account,
-                            "bank_account": self.bank_account,
-                            "credit_in_account_currency": flt(amount_credit, precision),
-                            "exchange_rate": flt(exchange_rate_credit),
-                            "cost_center": self.cost_center,
-                        },
-                        accounting_dimensions,
-                        # doc=new_je # Pass the new_je document for context
-                    )
-                )
+                              self.update_accounting_dimensions(
+                                  {
+                                      "account": self.payment_account,
+                                      "bank_account": self.bank_account,
+                                      "credit_in_account_currency": flt(amount_credit, precision),
+                                      "exchange_rate": flt(exchange_rate_credit),
+                                      "cost_center": self.cost_center,
+                                  },
+                                  accounting_dimensions,
+                                  # doc=new_je # Pass the new_je document for context
+                              )
+                              )
 
                 # Add Debit lines (Payroll Payable for each employee in the group)
                 for emp_data in employees_in_group:
                     exchange_rate_debit, amount_debit = self.get_amount_and_exchange_rate_for_journal_entry(
-                        payroll_payable_account, emp_data['amount'], company_currency, [] # Use empty list for currencies here
+                        # Use empty list for currencies here
+                        payroll_payable_account, emp_data['amount'], company_currency, [
+                        ]
                     )
                     new_je.append("accounts",
-                        self.update_accounting_dimensions(
-                            {
-                                "account": payroll_payable_account,
-                                "debit_in_account_currency": flt(amount_debit, precision),
-                                "exchange_rate": flt(exchange_rate_debit),
-                                "reference_type": self.doctype, # Payroll Entry
-                                "reference_name": self.name,    # Payroll Entry Name
-                                "party_type": "Employee",
-                                "party": emp_data['name'],
-                                "cost_center": emp_data['cost_center'],
-                                "user_remark": _("Payment for employee {0} (Bank: {1}, Branch: {2})").format(
-                                    emp_data['name'], bank_name_for_je, bank_branch_for_je
-                                )
-                            },
-                            accounting_dimensions,
-                            # doc=new_je # Pass the new_je document for context
-                        )
-                    )
-                
+                                  self.update_accounting_dimensions(
+                                      {
+                                          "account": payroll_payable_account,
+                                          "debit_in_account_currency": flt(amount_debit, precision),
+                                          "exchange_rate": flt(exchange_rate_debit),
+                                          "reference_type": self.doctype,  # Payroll Entry
+                                          "reference_name": self.name,    # Payroll Entry Name
+                                          "party_type": "Employee",
+                                          "party": emp_data['name'],
+                                          "cost_center": emp_data['cost_center'],
+                                          "user_remark": _("Payment for employee {0} (Bank: {1}, Branch: {2})").format(
+                                              emp_data['name'], bank_name_for_je, bank_branch_for_je
+                                          )
+                                      },
+                                      accounting_dimensions,
+                                      # doc=new_je # Pass the new_je document for context
+                                  )
+                                  )
+
                 try:
                     new_je.flags.ignore_mandatory = True
                     new_je.insert()
@@ -453,8 +468,12 @@ class overrid_payroll_entry(PayrollEntry):
                     frappe.msgprint(_("Journal Entry {0} created and submitted for Bank: {1}, Branch: {2}").format(
                         new_je.name, bank_name_for_je, bank_branch_for_je))
                 except Exception as e:
-                    frappe.log_error(f"Error creating/submitting Journal Entry for Bank {bank_name_for_je}, Branch {bank_branch_for_je}: {e}", "Multi-JE Creation Error")
-                    frappe.throw(_("Failed to create Journal Entry for a bank group. Please check error log for details."))
+                    frappe.log_error(
+                        "[payroll_entry.py] method: set_accounting_entries_for_bank_entry_",
+                        "Payroll Entry Bank Entry",
+                    )
+                    frappe.throw(
+                        _("Failed to create Journal Entry for a bank group. Please check error log for details."))
 
             # Optional: Update the Payroll Entry to link to the created JEs
             # You might need a custom field on Payroll Entry, e.g., 'custom_linked_journal_entries' (type Table)
@@ -462,9 +481,9 @@ class overrid_payroll_entry(PayrollEntry):
             if created_journal_entries:
                 pass
                 # Assuming 'custom_linked_journal_entries' is a 'Data' field on Payroll Entry
-                
+
                 # self.db_set("custom_linked_journal_entries", ", ".join(created_journal_entries))
-                
+
                 # If it's a Table field, you'd do:
                 # self.set("custom_je_links", [])
                 # for je_name in created_journal_entries:
@@ -473,14 +492,14 @@ class overrid_payroll_entry(PayrollEntry):
 
             frappe.msgprint(_("Successfully created {0} Journal Entries for Payroll Entry {1}.").format(
                 len(created_journal_entries), self.name))
-            
-            return created_journal_entries # Return the list of created JE names
+
+            return created_journal_entries  # Return the list of created JE names
 
         # else:
         #     # If not employee-based, create a single JE as before
         #     # This 'else' block needs to be part of the overridden method
         #     accounts = [] # Re-initialize accounts for this branch
-            
+
         #     exchange_rate_credit, amount_credit = self.get_amount_and_exchange_rate_for_journal_entry(
         #         self.payment_account, total_je_payment_amount, company_currency, currencies
         #     )
@@ -513,7 +532,7 @@ class overrid_payroll_entry(PayrollEntry):
         #             accounting_dimensions,
         #         )
         #     )
-            
+
         #     final_user_remark = _("Payment of !!!!!!!!!!!!!!!!!!!!!!!!!! {0} from {1} to {2}").format(
         #         _(user_remark), self.start_date, self.end_date
         #     )
@@ -552,7 +571,8 @@ class overrid_payroll_entry(PayrollEntry):
             if "salary_component" in account:
                 salary_component = account["salary_component"]
                 party_type, party = frappe.db.get_value(
-                    "Salary Component", salary_component, ["custom_party_type", "custom_party"]
+                    "Salary Component", salary_component, [
+                        "custom_party_type", "custom_party"]
                 )
                 if party_type and party:
                     account["party_type"] = party_type
@@ -571,7 +591,8 @@ class overrid_payroll_entry(PayrollEntry):
                 journal_entry.submit()
 
             if submitted_salary_slips:
-                self.set_journal_entry_in_salary_slips(submitted_salary_slips, jv_name=journal_entry.name)
+                self.set_journal_entry_in_salary_slips(
+                    submitted_salary_slips, jv_name=journal_entry.name)
 
         except Exception as e:
             if type(e) in (str, list, tuple):
@@ -581,7 +602,7 @@ class overrid_payroll_entry(PayrollEntry):
             raise
 
         return journal_entry
-    
+
     def get_salary_component_total_(
         self,
         component_type=None,
@@ -599,10 +620,12 @@ class overrid_payroll_entry(PayrollEntry):
                 employee_cost_centers = self.get_payroll_cost_centers_for_employee(
                     item.employee, item.salary_structure
                 )
-                employee_advance = self.get_advance_deduction(component_type, item)
+                employee_advance = self.get_advance_deduction(
+                    component_type, item)
 
                 for cost_center, percentage in employee_cost_centers.items():
-                    amount_against_cost_center = flt(item.amount) * percentage / 100
+                    amount_against_cost_center = flt(
+                        item.amount) * percentage / 100
 
                     if employee_advance:
                         self.add_advance_deduction_entry(
@@ -610,7 +633,8 @@ class overrid_payroll_entry(PayrollEntry):
                         )
                     else:
                         key = (item.salary_component, cost_center)
-                        component_dict[key] = component_dict.get(key, 0) + amount_against_cost_center
+                        component_dict[key] = component_dict.get(
+                            key, 0) + amount_against_cost_center
 
                     if process_payroll_accounting_entry_based_on_employee:
                         self.set_employee_based_payroll_payable_entries(
@@ -620,24 +644,25 @@ class overrid_payroll_entry(PayrollEntry):
             account_details = self.get_account(component_dict=component_dict)
 
             return account_details
-        
+
     def get_account(self, component_dict=None):
-            account_dict = {}
-            for key, amount in component_dict.items():
-                # key is (component, cost_center) from get_salary_component_total
-                component, cost_center = key
+        account_dict = {}
+        for key, amount in component_dict.items():
+            # key is (component, cost_center) from get_salary_component_total
+            component, cost_center = key
 
-                # Assuming this new method returns (account, party_type, party)
-                account, party_type, party = get_salary_component_account_details(self , component)
+            # Assuming this new method returns (account, party_type, party)
+            account, party_type, party = get_salary_component_account_details(
+                self, component)
 
-                # The new accounting key includes account, cost_center, party_type, and party
-                accounting_key = (account, cost_center, party_type, party)
+            # The new accounting key includes account, cost_center, party_type, and party
+            accounting_key = (account, cost_center, party_type, party)
 
-                account_dict[accounting_key] = account_dict.get(accounting_key, 0) + amount
+            account_dict[accounting_key] = account_dict.get(
+                accounting_key, 0) + amount
 
-            return account_dict
+        return account_dict
 
-    
     def get_salary_components_(self, component_type):
         salary_slips = self.get_sal_slip_list(ss_status=1, as_dict=True)
 
@@ -693,13 +718,12 @@ class overrid_payroll_entry(PayrollEntry):
 
     @frappe.whitelist()
     def make_payment_entry(self):
-        print ("Making payment entry")
+        print("Making payment entry")
         self.check_permission("write")
         self.employee_based_payroll_payable_entries = {}
         process_payroll_accounting_entry_based_on_employee = frappe.db.get_single_value(
             "Payroll Settings", "process_payroll_accounting_entry_based_on_employee"
         )
-
 
         salary_slip_name_list = frappe.db.sql(
             """ select t1.name from `tabSalary Slip` t1
@@ -713,7 +737,8 @@ class overrid_payroll_entry(PayrollEntry):
         if salary_slip_name_list and len(salary_slip_name_list) > 0:
             salary_slip_total = 0
             for salary_slip_name in salary_slip_name_list:
-                salary_slip = frappe.get_doc("Salary Slip", salary_slip_name[0])
+                salary_slip = frappe.get_doc(
+                    "Salary Slip", salary_slip_name[0])
 
                 for sal_detail in salary_slip.earnings:
                     (
@@ -735,7 +760,8 @@ class overrid_payroll_entry(PayrollEntry):
                     )
                     if only_tax_impact != 1 and statistical_component != 1 and do_not_include_in_total != 1:
                         if is_flexible_benefit == 1 and creat_separate_je == 1:
-                            self.create_journal_entry(sal_detail.amount, sal_detail.salary_component)
+                            self.create_journal_entry(
+                                sal_detail.amount, sal_detail.salary_component)
                         else:
                             if process_payroll_accounting_entry_based_on_employee:
                                 self.set_employee_based_payroll_payable_entries(
@@ -748,8 +774,9 @@ class overrid_payroll_entry(PayrollEntry):
 
                 for sal_detail in salary_slip.deductions:
                     (statistical_component,
-                    do_not_include_in_total )= frappe.db.get_value(
-                        "Salary Component", sal_detail.salary_component, ["statistical_component" , "do_not_include_in_total"],
+                     do_not_include_in_total) = frappe.db.get_value(
+                        "Salary Component", sal_detail.salary_component, [
+                            "statistical_component", "do_not_include_in_total"],
                     )
                     if statistical_component != 1 and do_not_include_in_total != 1:
                         if process_payroll_accounting_entry_based_on_employee:
@@ -766,11 +793,8 @@ class overrid_payroll_entry(PayrollEntry):
 
                         salary_slip_total -= sal_detail.amount
 
-
-
             if salary_slip_total > 0:
                 self.create_journal_entry(salary_slip_total, "salary")
-
 
     def make_journal_entry(
         self,
@@ -805,7 +829,8 @@ class overrid_payroll_entry(PayrollEntry):
                 journal_entry.submit()
 
             if submitted_salary_slips:
-                self.set_journal_entry_in_salary_slips(submitted_salary_slips, jv_name=journal_entry.name)
+                self.set_journal_entry_in_salary_slips(
+                    submitted_salary_slips, jv_name=journal_entry.name)
 
         except Exception as e:
             if type(e) in (str, list, tuple):
@@ -835,13 +860,13 @@ class overrid_payroll_entry(PayrollEntry):
                 indicator="blue",
             )
         else:
-            submit_salary_slips_for_employees(self, salary_slips, publish_progress=False)
-
+            submit_salary_slips_for_employees(
+                self, salary_slips, publish_progress=False)
 
 
 def submit_salary_slips_for_employees_(payroll_entry, salary_slips, publish_progress=True):
     print("hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
-    from hrms.payroll.doctype.payroll_entry.payroll_entry import show_payroll_submission_status ,log_payroll_failure
+    from hrms.payroll.doctype.payroll_entry.payroll_entry import show_payroll_submission_status, log_payroll_failure
 
     try:
         submitted = []
@@ -867,9 +892,10 @@ def submit_salary_slips_for_employees_(payroll_entry, salary_slips, publish_prog
                 )
 
         if submitted:
-            make_accrual_jv_entry(payroll_entry , submitted)
+            make_accrual_jv_entry(payroll_entry, submitted)
             payroll_entry.email_salary_slip(submitted)
-            payroll_entry.db_set({"salary_slips_submitted": 1, "status": "Submitted", "error_message": ""})
+            payroll_entry.db_set(
+                {"salary_slips_submitted": 1, "status": "Submitted", "error_message": ""})
 
         show_payroll_submission_status(submitted, unsubmitted, payroll_entry)
 
@@ -882,8 +908,6 @@ def submit_salary_slips_for_employees_(payroll_entry, salary_slips, publish_prog
         frappe.publish_realtime("completed_salary_slip_submission")
 
     frappe.flags.via_payroll_entry = False
-
-
 
 
 def make_accrual_jv_entry(self, submitted_salary_slips):
@@ -911,7 +935,8 @@ def make_accrual_jv_entry(self, submitted_salary_slips):
         or {}
     )
 
-    precision = frappe.get_precision("Journal Entry Account", "debit_in_account_currency")
+    precision = frappe.get_precision(
+        "Journal Entry Account", "debit_in_account_currency")
 
     if earnings or deductions:
         accounts = []
@@ -1008,6 +1033,7 @@ def make_accrual_jv_entry(self, submitted_salary_slips):
 
 #     return payable_amount
 
+
 def get_payable_amount_for_earnings_and_deductions(
     self,
     accounts,
@@ -1028,8 +1054,8 @@ def get_payable_amount_for_earnings_and_deductions(
         # Pass the correct elements to the helper function
         payable_amount = get_accounting_entries_and_payable_amount_(
             self,
-            account, # acc_cc[0] is now just 'account'
-            cost_center or self.cost_center, # acc_cc[1] is now 'cost_center'
+            account,  # acc_cc[0] is now just 'account'
+            cost_center or self.cost_center,  # acc_cc[1] is now 'cost_center'
             amount,
             currencies,
             company_currency,
@@ -1037,8 +1063,8 @@ def get_payable_amount_for_earnings_and_deductions(
             accounting_dimensions,
             precision,
             entry_type="debit",
-            party_type =party_type,
-            party=party, # Pass party
+            party_type=party_type,
+            party=party,  # Pass party
             accounts=accounts,
         )
 
@@ -1050,8 +1076,8 @@ def get_payable_amount_for_earnings_and_deductions(
 
         payable_amount = get_accounting_entries_and_payable_amount_(
             self,
-            account, # acc_cc[0] is now 'account'
-            cost_center or self.cost_center, # acc_cc[1] is now 'cost_center'
+            account,  # acc_cc[0] is now 'account'
+            cost_center or self.cost_center,  # acc_cc[1] is now 'cost_center'
             amount,
             currencies,
             company_currency,
@@ -1060,11 +1086,12 @@ def get_payable_amount_for_earnings_and_deductions(
             precision,
             entry_type="credit",
             party_type=party_type,
-            party=party, # Pass party
+            party=party,  # Pass party
             accounts=accounts,
         )
 
     return payable_amount
+
 
 def get_accounting_entries_and_payable_amount_(
     self,
@@ -1150,26 +1177,25 @@ def get_accounting_entries_and_payable_amount_(
 def get_salary_component_account_details(self, salary_component):
 
     account = frappe.db.get_value(
-			"Salary Component Account",
-			{"parent": salary_component, "company": self.company},
-			"account",
-			cache=True,
-		)
+        "Salary Component Account",
+        {"parent": salary_component, "company": self.company},
+        "account",
+        cache=True,
+    )
 
     custom_party_type = frappe.db.get_value(
-                "Salary Component Account",
-                {"parent": salary_component, "company": self.company},
-                "custom_party_type",
-                cache=True,
-            )
+        "Salary Component Account",
+        {"parent": salary_component, "company": self.company},
+        "custom_party_type",
+        cache=True,
+    )
 
     custom_party = frappe.db.get_value(
-                "Salary Component Account",
-                {"parent": salary_component, "company": self.company},
-                "custom_party",
-                cache=True,
-            )
-
+        "Salary Component Account",
+        {"parent": salary_component, "company": self.company},
+        "custom_party",
+        cache=True,
+    )
 
     if not account:
         frappe.throw(
@@ -1178,4 +1204,4 @@ def get_salary_component_account_details(self, salary_component):
             )
         )
 
-    return account ,custom_party_type, custom_party
+    return account, custom_party_type, custom_party
