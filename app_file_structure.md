@@ -1,10 +1,10 @@
-# HR Advance - File Structure
+# File Structure
 
 ## Overview
 
-Simple file structure documentation for hr_advance app.
+Simple file structure tree for hr_advance app.
 
-## Directory Tree
+## Directory Structure
 
 ```
 hr_advance/
@@ -12,100 +12,88 @@ hr_advance/
 │   ├── __init__.py
 │   ├── api.py                    # API methods
 │   ├── event.py                  # Document event handlers
-│   ├── hooks.py                  # App hooks configuration
+│   ├── hooks.py                  # App hooks and configuration
 │   ├── tasks.py                  # Scheduled tasks
-│   ├── modules.txt               # Module definition
-│   ├── patches.txt               # Migration patches
+│   ├── modules.txt               # App modules
+│   ├── patches.txt               # Database patches
 │   ├── config/                   # Configuration files
-│   ├── override/                 # Core DocType overrides
+│   ├── custom/                   # Custom DocType definitions
+│   ├── hr_advance/               # Main module
+│   │   ├── __init__.py
+│   │   ├── doctype/              # DocType definitions
+│   │   │   ├── bank_branch/
+│   │   │   ├── bulk_leave_allocation/
+│   │   │   ├── bulk_leave_allocation_table/
+│   │   │   ├── course_classification/
+│   │   │   ├── department_type/
+│   │   │   ├── designation_type/
+│   │   │   ├── employee_bank/
+│   │   │   ├── employee_bank_branch/
+│   │   │   ├── employee_training_request/
+│   │   │   ├── exit_permission_request/
+│   │   │   └── training_course_available/
+│   │   └── report/               # Custom reports
+│   ├── override/                 # Override core DocTypes
 │   │   └── py/
 │   │       ├── employee.py
 │   │       ├── payroll_entry.py
 │   │       └── salary_slip.py
-│   ├── public/                   # Client-side assets
-│   │   └── js/
-│   │       ├── employee.js
-│   │       ├── loan.js
-│   │       ├── loan_application.js
-│   │       ├── travel_request.js
-│   │       └── additional_salary.js
-│   ├── templates/                # Jinja templates
-│   │   └── pages/
-│   └── hr_advance/               # Main module
-│       ├── __init__.py
-│       ├── custom/               # Custom fields
-│       │   └── leave_type.json
-│       ├── doctype/              # Custom DocTypes
-│       │   ├── bank_branch/
-│       │   ├── bulk_leave_allocation/
-│       │   ├── bulk_leave_allocation_table/
-│       │   ├── course_classification/
-│       │   ├── department_type/
-│       │   ├── designation_type/
-│       │   ├── employee_bank/
-│       │   ├── employee_bank_branch/
-│       │   ├── employee_training_request/
-│       │   ├── exit_permission_request/
-│       │   └── training_course_available/
-│       └── report/               # Custom reports
-│           ├── attendance_report/
-│           └── exit_permission_report/
-├── README.md
+│   └── public/                   # Public assets
+│       └── js/                   # JavaScript files
+│           ├── employee.js
+│           ├── loan.js
+│           ├── loan_application.js
+│           ├── travel_request.js
+│           └── additional_salary.js
 ├── license.txt
-└── pyproject.toml
+├── pyproject.toml
+└── README.md
 ```
 
-## DocTypes
+## Key Files
 
-### Leave Management
+### Configuration
 
--   **Bulk Leave allocation**: Bulk leave allocation for multiple employees
--   **Bulk Leave allocation Table**: Child table for employee leave details
+-   `hooks.py`: App hooks, doctype_js, doc_events, scheduler_events, override_doctype_class
+-   `modules.txt`: App modules list
+-   `patches.txt`: Database migration patches
 
-### Employee Management
+### API and Logic
 
--   **Designation Type**: Designation types with salary details
--   **Department Type**: Department type classification
--   **Employee Bank**: Employee bank account information
--   **Employee Bank Branch**: Bank branch details for employees
--   **Employee Training Request**: Training request management
--   **Training Course Available**: Available training courses
--   **Course Classification**: Course classification system
--   **Exit Permission Request**: Exit permission management
+-   `api.py`: Whitelisted API methods
+-   `event.py`: Document event handlers (on_submit, on_cancel, validate)
+-   `tasks.py`: Scheduled tasks (daily, hourly, etc.)
 
-### Banking
+### DocType Structure
 
--   **Bank Branch**: Bank branch master data
+Each DocType has:
 
-## Reports
+-   `{doctype_name}.json`: DocType definition
+-   `{doctype_name}.py`: Python controller
+-   `{doctype_name}.js`: Client-side JavaScript
+-   `__init__.py`: Package initialization
 
--   **Attendance Report**: Detailed attendance tracking with late/early entries
--   **Exit Permission Report**: Exit permission analytics
+### Overrides
 
-## Overrides
+-   `override/py/`: Python class overrides for core DocTypes
+-   `override/js/`: JavaScript overrides (if any)
 
-### Core DocType Overrides
+## DocType Pattern
 
--   **Employee**: Custom employee naming and approvers
--   **Salary Slip**: Enhanced salary slip processing
--   **Payroll Entry**: Custom bank entry and journal entry processing
+```
+doctype/
+└── {doctype_name}/
+    ├── __init__.py
+    ├── {doctype_name}.json      # DocType definition
+    ├── {doctype_name}.py         # Server-side logic
+    ├── {doctype_name}.js         # Client-side logic
+    └── {doctype_name}_list.js    # List view customization (optional)
+```
 
-## Custom Fields
+## Important Notes
 
--   **Leave Type**: `custom_no_earlier_submission_allowed` (Check)
--   **Leave Type**: `custom_yearly_leave_type` (Check)
-
-## Scheduled Tasks
-
-### Daily Tasks
-
--   `calculate_exp_yrears_in_employee`: Calculate employee experience years
--   `update_supplier_status`: Update supplier status based on license expiration
-
-## Client Scripts
-
--   `employee.js`: Employee form customizations
--   `loan.js`: Loan form customizations
--   `loan_application.js`: Loan application form customizations
--   `travel_request.js`: Travel request form customizations
--   `additional_salary.js`: Additional salary form customizations
+-   All DocTypes are in `hr_advance/hr_advance/doctype/`
+-   Custom fields are stored in `custom/` directory
+-   Reports are in `hr_advance/hr_advance/report/`
+-   Public assets (JS/CSS) are in `public/`
+-   Overrides extend core ERPNext/HRMS functionality
