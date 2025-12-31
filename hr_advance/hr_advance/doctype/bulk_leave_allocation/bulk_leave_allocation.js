@@ -3,6 +3,15 @@
 
 frappe.ui.form.on('Bulk Leave allocation', {
 	refresh: function (frm) {
+		// Update required property for new_leaves_allocated based on yearly_leave_type
+		if (frm.fields_dict.bulk_leave_allocation_table) {
+			frm.fields_dict.bulk_leave_allocation_table.grid.update_docfield_property(
+				'new_leaves_allocated',
+				'reqd',
+				cint(frm.doc.yearly_leave_type) === 0 ? 1 : 0,
+			);
+		}
+
 		// Get Active Employees button with emoji
 		frm.add_custom_button(__('👥 Get Active Employees'), function () {
 			if (!frm.doc.company) {
@@ -48,9 +57,16 @@ frappe.ui.form.on('Bulk Leave allocation', {
 							row.leave_type = employee.leave_type;
 							row.from_date = employee.from_date;
 							row.to_date = employee.to_date;
-							row.new_leaves_allocated = employee.new_leaves_allocated || 0;
-							row.carry_forward = employee.carry_forward || 0;
+							row.carry_forward =
+								employee.carry_forward !== undefined ? employee.carry_forward : 1;
 							row.total_leaves_allocated = employee.total_leaves_allocated || 0;
+
+							// If yearly_leave_type = 1, copy total_leaves_allocated to new_leaves_allocated
+							if (cint(frm.doc.yearly_leave_type) === 1) {
+								row.new_leaves_allocated = row.total_leaves_allocated || 0;
+							} else {
+								row.new_leaves_allocated = 0;
+							}
 						});
 
 						frm.refresh_field('bulk_leave_allocation_table');
@@ -124,6 +140,78 @@ frappe.ui.form.on('Bulk Leave allocation', {
 					},
 				);
 			});
+		}
+	},
+
+	yearly_leave_type: function (frm) {
+		// When yearly_leave_type changes, update all rows in child table
+		if (
+			frm.doc.bulk_leave_allocation_table &&
+			frm.doc.bulk_leave_allocation_table.length > 0
+		) {
+			frm.doc.bulk_leave_allocation_table.forEach(function (row) {
+				if (cint(frm.doc.yearly_leave_type) === 1) {
+					// Copy total_leaves_allocated to new_leaves_allocated
+					row.new_leaves_allocated = row.total_leaves_allocated || 0;
+				} else {
+					// Clear new_leaves_allocated if yearly_leave_type = 0
+					row.new_leaves_allocated = 0;
+				}
+			});
+			frm.refresh_field('bulk_leave_allocation_table');
+		}
+
+		// Update required property for new_leaves_allocated in child table
+		frm.fields_dict.bulk_leave_allocation_table.grid.update_docfield_property(
+			'new_leaves_allocated',
+			'reqd',
+			cint(frm.doc.yearly_leave_type) === 0 ? 1 : 0,
+		);
+	},
+});
+
+// Handle child table changes
+frappe.ui.form.on('Bulk Leave allocation Table', {
+	total_leaves_allocated: function (frm, cdt, cdn) {
+		let row = locals[cdt][cdn];
+		// If yearly_leave_type = 1, copy total_leaves_allocated to new_leaves_allocated
+		if (cint(frm.doc.yearly_leave_type) === 1) {
+			frappe.model.set_value(
+				cdt,
+				cdn,
+				'new_leaves_allocated',
+				row.total_leaves_allocated || 0,
+			);
+		}
+	},
+
+	carry_forward: function (frm, cdt, cdn) {
+		let row = locals[cdt][cdn];
+		// If carry_forward = 1, copy new_leaves_allocated to total_leaves_allocated
+		if (cint(row.carry_forward) === 1 && row.new_leaves_allocated) {
+			// Calculate total: unused_leaves + new_leaves_allocated
+			// For now, just set total = new_leaves_allocated (will be recalculated on server)
+			frappe.model.set_value(
+				cdt,
+				cdn,
+				'total_leaves_allocated',
+				row.new_leaves_allocated || 0,
+			);
+		}
+	},
+
+	new_leaves_allocated: function (frm, cdt, cdn) {
+		let row = locals[cdt][cdn];
+		// If carry_forward = 1, update total_leaves_allocated
+		if (cint(row.carry_forward) === 1) {
+			// Calculate total: unused_leaves + new_leaves_allocated
+			// For now, just set total = new_leaves_allocated (will be recalculated on server)
+			frappe.model.set_value(
+				cdt,
+				cdn,
+				'total_leaves_allocated',
+				row.new_leaves_allocated || 0,
+			);
 		}
 	},
 });
