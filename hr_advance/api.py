@@ -134,7 +134,7 @@ def create_expense_claim_from_travel_request(travel_request_name):
     expense_claim.department = frappe.db.get_value(
         "Employee", expense_claim.employee_name, 'Department')
     expense_claim.custom_travel_request = travel_request_doc.name
-
+    
     # You might want to link the Expense Claim back to the Travel Request
     # Make sure 'travel_request' field exists in Expense Claim DocType or add it via Customize Form
     # expense_claim.travel_request = travel_request_doc.name
@@ -197,7 +197,7 @@ def calculate_employee_base(employee):
 
             basic_salary = float(frappe.db.get_value(
                 "Salary Structure Assignment", salary_structure_assignment_name, 'custom_basic_salary') or 0.0)
-
+            
             return {
                 "basic_salary": basic_salary
             }
@@ -233,14 +233,14 @@ def get_additional_salaries(employee, start_date, end_date, component_type):
             additional_sal.name,
             component_field,
             additional_sal.type,
-            amount_sum,
+            amount_sum, 
             additional_sal.is_recurring,
             overwrite_field,
             additional_sal.deduct_full_tax_on_selected_payroll_date,
         )
         .groupby(
             component_field
-        )
+            )
         .where(
             (additional_sal.employee == employee)
             & (additional_sal.docstatus == 1)
