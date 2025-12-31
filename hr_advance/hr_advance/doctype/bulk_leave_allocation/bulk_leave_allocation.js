@@ -119,21 +119,73 @@ frappe.ui.form.on('Bulk Leave allocation', {
 							freeze_message: __('Creating Leave Allocations...'),
 							callback: function (r) {
 								if (!r.exc && r.message) {
-									frappe.msgprint({
-										title: __('Success'),
-										message: __(
-											'Created {0} Leave Allocation documents. {1} failed.',
-											[
-												r.message.success_count || 0,
-												r.message.failed_count || 0,
-											],
-										),
-										indicator: 'green',
-										alert: true,
-									});
-									if (r.message.failed && r.message.failed.length > 0) {
-										console.log('Failed allocations:', r.message.failed);
+									let title = __('Success');
+									let indicator = 'green';
+									let message = '';
+
+									// Show success count
+									if (r.message.success_count > 0) {
+										message = __('Created {0} Leave Allocation document(s).', [
+											r.message.success_count || 0,
+										]);
 									}
+
+									// Show failed allocations if any
+									if (r.message.failed && r.message.failed.length > 0) {
+										if (r.message.success_count > 0) {
+											title = __('Partial Success');
+											indicator = 'orange';
+										} else {
+											title = __('Failed');
+											indicator = 'red';
+										}
+
+										// Build message with HTML table
+										let fullMessage = '';
+										if (message) {
+											fullMessage = message + '<hr>';
+										}
+										fullMessage += __(
+											'Failed to create {0} Leave Allocation(s):',
+											[r.message.failed_count || 0],
+										);
+										fullMessage += '<br><br>';
+
+										// Create HTML table
+										fullMessage +=
+											"<table class='table table-bordered'><tr><th>" +
+											__('Employee') +
+											'</th><th>' +
+											__('Error') +
+											'</th></tr>';
+
+										r.message.failed.forEach(function (item) {
+											fullMessage +=
+												'<tr><td>' +
+												(item.employee_name || item.employee) +
+												'</td><td>' +
+												(item.error || __('Unknown error')) +
+												'</td></tr>';
+										});
+
+										fullMessage += '</table>';
+
+										frappe.msgprint({
+											title: title,
+											message: fullMessage,
+											indicator: indicator,
+											is_minimizable: true,
+										});
+									} else {
+										// All succeeded
+										frappe.msgprint({
+											title: title,
+											message: message,
+											indicator: indicator,
+											alert: true,
+										});
+									}
+
 									// Reload the form
 									frm.reload_doc();
 								}
