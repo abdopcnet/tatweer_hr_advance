@@ -1,0 +1,68 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Additional Salary",
+  "enabled": 0,
+  "modified": "2025-12-31 22:14:53.549954",
+  "module": "Hr Advance",
+  "name": "Additional Salary",
+  "script": "frappe.ui.form.on('Additional Salary', {\n// \trefresh(frm) {\n// \t\t// your code here\n// \t},\n\tset_component_query: function (frm) {\n    if (!frm.doc.company) return;\n    let filters = {custom_allow_it_in_monthly_variables: 1};\n    // if (frm.doc.type) {\n    //     filters.type = frm.doc.type;\n    // }\n    frm.set_query(\"salary_component\", function () {\n        return {\n            filters: filters,\n        };\n    });\n},\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Task",
+  "enabled": 1,
+  "modified": "2025-09-10 17:34:10.247775",
+  "module": "Hr Advance",
+  "name": "task completed date check",
+  "script": "frappe.ui.form.on('Task', {\n\tcompleted_on: function(frm) {\n\t\tif (frm.doc.completed_on && frm.doc.exp_start_date){\n\t\t    if (frm.doc.completed_on < frm.doc.exp_start_date){\n\t\t        msgprint(('You can not select completed date pefore the task expacted start date '));\n                validated = false;\n\t\t    }\n\t\t    \n\t\t}\n\t}\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Expense Claim",
+  "enabled": 1,
+  "modified": "2025-12-31 22:15:29.085444",
+  "module": "Hr Advance",
+  "name": "Expense Claim Detail",
+  "script": "frappe.ui.form.on('Expense Claim', {\n\tvalidate(frm) {\n        $.each(frm.doc.advances || [], function (i, advance) {\n// \t\tadvance.allocated_amount = 99999;\n        frm.doc.advances[i].allocated_amount = frm.doc.total_claimed_amount\n        // \t\t\tif (amount_to_be_allocated >= advance.unclaimed_amount - advance.return_amount) {\n        // \t\t\t\tadvance.allocated_amount =\n        // \t\t\t\t\tfrm.doc.advances[i].unclaimed_amount - frm.doc.advances[i].return_amount;\n        // \t\t\t\tamount_to_be_allocated -= advance.allocated_amount;\n        // \t\t\t} else {\n        // \t\t\t\tadvance.allocated_amount = 99999;\n        // \t\t\t\tamount_to_be_allocated = 0;\n        // \t\t\t}\n        \t\t\tfrm.refresh_field(\"advances\");\n        \t\t});\n        \t\t},\n\t\n})\n\n// frappe.ui.form.on('Expense Claim Detail', {\n// \tamount: function (frm, cdt, cdn) {\n// \t    console.log('hi')\n// \t\tfrm.trigger(\"calculate_total\");\n// \t\tlet amount_to_be_allocated = frm.doc.grand_total;\n// \t\tfrm.trigger(\"update_employee_advance_claimed_amount\");\n\n//         $.each(frm.doc.advances || [], function (i, advance) {\n//     \t\t\t\tadvance.allocated_amount = 99999;\n// frm.doc.advances[i].allocated_amount = 98888\n//         // \t\t\tif (amount_to_be_allocated >= advance.unclaimed_amount - advance.return_amount) {\n//         // \t\t\t\tadvance.allocated_amount =\n//         // \t\t\t\t\tfrm.doc.advances[i].unclaimed_amount - frm.doc.advances[i].return_amount;\n//         // \t\t\t\tamount_to_be_allocated -= advance.allocated_amount;\n//         // \t\t\t} else {\n//         // \t\t\t\tadvance.allocated_amount = 99999;\n//         // \t\t\t\tamount_to_be_allocated = 0;\n//         // \t\t\t}\n//         \t\t\tfrm.refresh_field(\"advances\");\n//         \t\t});\n// \t\t}\n// })",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Leave Application",
+  "enabled": 1,
+  "modified": "2025-12-31 22:14:53.547796",
+  "module": "Hr Advance",
+  "name": "leave application sick leave",
+  "script": "frappe.ui.form.on('Leave Application', {\n\trefresh(frm) {\n\t\n    if(cur_frm.doc.leave_type == \"إجازة مرضية\" && frm.doc.custom_medical_care_committee !=\"Approved\" && frm.doc.status ==\"Open\" ){\n        frm.set_df_property('status',  'readonly', 1);\n          if (frappe.user_roles.indexOf(\"لجنة الرعاية الطبية\") != -1 ) {\n            frm.add_custom_button(__('الموافقة من لجنة الرعاية الطبية'), function() {\n            frm.doc.custom_reviewed_by_the_medical_care_committee = 1\n            frm.set_value('custom_reviewed_by_the_medical_care_committee', 1);\n            frm.set_value('custom_medical_care_committee', \"Approved\");\n            frm.set_value('status', \"Approved\");\n            frm.set_value('workflow_state', \"Approved\");\n            frm.set_df_property('status',  'hidden', 0);\n            frm.set_df_property('status',  'readonly', 1);\n\n            console.log(\"approve\")\n          frm.refresh_fields();\n          frm.save();\n          frm.set_value('workflow_state', \"Approved\");\n          frm.save();\n          frm.refresh();\n\n            },\n        );\n        }\n    }\n    \n    if(cur_frm.doc.leave_type == \"إجازة مرضية\" && frm.doc.custom_medical_care_committee !=\"Rejected\" && frm.doc.status ==\"Open\" ){\n        frm.set_df_property('status',  'readonly', 1);\n          if (frappe.user_roles.indexOf(\"لجنة الرعاية الطبية\") != -1 ) {\n            frm.add_custom_button(__('رفض لجنة الرعاية الطبية'), function() {\n            frm.doc.custom_reviewed_by_the_medical_care_committee = 1\n            frm.set_value('custom_reviewed_by_the_medical_care_committee', 0);\n            frm.set_value('custom_medical_care_committee', \"Rejected\");\n            // frm.set_value('status', \"Rejected\");\n            // frm.set_value('workflow_state', \"Rejected\");\n            // frm.set_df_property('status',  'hidden', 0);\n            frm.set_df_property('status',  'readonly', 1);\n\n            console.log(\"approve\")\n          frm.refresh_fields();\n          frm.save();\n          frm.refresh();\n\n            },\n        );\n        }\n    }\n        if(cur_frm.doc.leave_type == \"إجازة مرضية\"){\n            frm.set_df_property('status',  'readonly', 1);\n            console.log(\"approve1!!!!!!\")\n    }\n    \n\t}\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Payroll Entry",
+  "enabled": 1,
+  "modified": "2025-12-31 22:14:53.548637",
+  "module": "Hr Advance",
+  "name": "Payroll Entry Review Workfllow",
+  "script": "frappe.ui.form.on('Payroll Entry', {\n\trefresh(frm) {\n\n\t\t// your code here\n    // frm.toggle_enable(\"Submit Salary Slip\", false);\n    if(!frm.doc.custom_salary_slip_reviewd){\n    $('.btn-primary[data-label=\"Submit%20Salary%20Slip\"]').toggle(false);\n    $('.btn-primary[data-label=\"%D8%A7%D9%84%D9%85%D9%88%D8%A7%D9%81%D9%82%D8%A9%20%D9%83%D8%B4%D9%81%20%D8%A7%D9%84%D8%B1%D9%88%D8%A7%D8%AA%D8%A8\"]').toggle(false);\n    }\n        if (frappe.user_roles.indexOf(\"مدير المرتبات\") == -1 ){\n            console.log(\"false\")\n    $('.btn-primary[data-label=\"Submit%20Salary%20Slip\"]').toggle(false);\n    $('.btn-primary[data-label=\"%D8%A7%D9%84%D9%85%D9%88%D8%A7%D9%81%D9%82%D8%A9%20%D9%83%D8%B4%D9%81%20%D8%A7%D9%84%D8%B1%D9%88%D8%A7%D8%AA%D8%A8\"]').toggle(false);\n\n    }\n    if(cur_frm.doc.salary_slips_created  && !frm.doc.salary_slips_submitted  && (frm.doc.docstatus !=2) && !frm.doc.custom_salary_slip_reviewd){\n          if (frappe.user_roles.indexOf(\"مراجع المرتبات\") != -1 ) {\n            frm.add_custom_button(__('تمت مراجعة البيانات'), function() {\n            frm.set_value('custom_salary_slip_reviewd', 1);\n             $('.btn-primary[data-label=\"Submit%20Salary%20Slip\"]').toggle(true);\n            console.log(\"DDDDOne\")\n          frm.refresh_fields();\n          frm.save();\n          frm.refresh();\n\n            },\n        );\n        }\n    }\n        if(cur_frm.doc.salary_slips_created  && !frm.doc.salary_slips_submitted  && (frm.doc.docstatus !=2) && frm.doc.custom_salary_slip_reviewd){\n          if (frappe.user_roles.indexOf(\"مراجع المرتبات\") != -1 ) {\n            frm.add_custom_button(__('بحاجة إلى مراجعة'), function() {\n            frm.set_value('custom_salary_slip_reviewd', 0);\n             $('.btn-primary[data-label=\"Submit%20Salary%20Slip\"]').toggle(false);\n            console.log(\"DDDDOne\")\n          frm.refresh_fields();\n          frm.save();\n          frm.refresh();\n\n            },\n        );\n        }\n    }\n\t}\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Salary Slip",
+  "enabled": 1,
+  "modified": "2025-12-31 22:14:53.549301",
+  "module": "Hr Advance",
+  "name": "cancale salary slip",
+  "script": "frappe.ui.form.on('Salary Slip', {\n\tsetup(frm) {\n        frm.ignore_doctypes_on_cancel_all = [\"Loan Repayment\"];\n        }\n})",
+  "view": "Form"
+ }
+]
