@@ -15,6 +15,7 @@ import re
 #
 # this code work in employee fileds for bank branches
 
+
 @frappe.whitelist()
 def fetch_bank_branch_list(doctype, txt, searchfield, start, page_len, filters):
     return frappe.db.sql(
@@ -34,8 +35,9 @@ def fetch_bank_branch_list(doctype, txt, searchfield, start, page_len, filters):
         },
     )
 
+
 @frappe.whitelist()
-def calculate_employee_loan_amount(loan_product , applicant , loan_eligibility_months):
+def calculate_employee_loan_amount(loan_product, applicant, loan_eligibility_months):
     try:
         loan_product_doc = frappe.get_doc('Loan Product', loan_product)
         if not loan_product_doc:
@@ -45,24 +47,28 @@ def calculate_employee_loan_amount(loan_product , applicant , loan_eligibility_m
         try:
             loan_eligibility_months_int = int(loan_eligibility_months)
         except ValueError:
-            frappe.throw(f"Invalid value for Loan Eligibility Months: '{loan_eligibility_months}'. Please provide a numeric value.")
+            frappe.throw(
+                f"Invalid value for Loan Eligibility Months: '{loan_eligibility_months}'. Please provide a numeric value.")
 
         # Safely convert custom_loan_eligibility_months from the doc to an integer
         # Use .strip() to remove any leading/trailing whitespace before conversion
         allowed_eligibility_months_int = 0
         if loan_product_doc.custom_loan_eligibility_months:
             try:
-                allowed_eligibility_months_int = int(str(loan_product_doc.custom_loan_eligibility_months).strip())
+                allowed_eligibility_months_int = int(
+                    str(loan_product_doc.custom_loan_eligibility_months).strip())
             except ValueError:
-                frappe.throw(f"Invalid value for Custom Loan Eligibility Months in Loan Product: '{loan_product_doc.custom_loan_eligibility_months}'. Please ensure it's a numeric value.")
-
+                frappe.throw(
+                    f"Invalid value for Custom Loan Eligibility Months in Loan Product: '{loan_product_doc.custom_loan_eligibility_months}'. Please ensure it's a numeric value.")
 
         if loan_eligibility_months_int > allowed_eligibility_months_int:
-            frappe.throw(f"The Loan Eligibility Months value of {loan_eligibility_months_int} is greater than the allowed {allowed_eligibility_months_int}")
+            frappe.throw(
+                f"The Loan Eligibility Months value of {loan_eligibility_months_int} is greater than the allowed {allowed_eligibility_months_int}")
 
         loan_installment_deduction_percentage = loan_product_doc.custom_loan_installment_deduction_percentage
 
-        salary_structure_assignment_list = frappe.get_all("Salary Structure" , filters={"payroll_frequency" : "Monthly"} , pluck='name')
+        salary_structure_assignment_list = frappe.get_all(
+            "Salary Structure", filters={"payroll_frequency": "Monthly"}, pluck='name')
 
         salary_structure_assignment_data = frappe.db.get_value(
             "Salary Structure Assignment",
@@ -70,7 +76,7 @@ def calculate_employee_loan_amount(loan_product , applicant , loan_eligibility_m
                 "employee": applicant,
                 "from_date": ("<=", today()),
                 "docstatus": 1,
-                "salary_structure": ["in" , salary_structure_assignment_list],
+                "salary_structure": ["in", salary_structure_assignment_list],
             },
             "*",
             order_by="from_date desc",
@@ -80,9 +86,12 @@ def calculate_employee_loan_amount(loan_product , applicant , loan_eligibility_m
         if salary_structure_assignment_data:
             salary_structure_assignment_name = salary_structure_assignment_data.name
 
-            basic_salary = float(frappe.db.get_value("Salary Structure Assignment", salary_structure_assignment_name, 'custom_basic_salary') or 0.0)
-            calculated_loan_amount = basic_salary * loan_eligibility_months_int # Use the converted integer
-            calculated_monthly_repayment_amount = basic_salary * loan_installment_deduction_percentage if loan_installment_deduction_percentage else 0
+            basic_salary = float(frappe.db.get_value(
+                "Salary Structure Assignment", salary_structure_assignment_name, 'custom_basic_salary') or 0.0)
+            calculated_loan_amount = basic_salary * \
+                loan_eligibility_months_int  # Use the converted integer
+            calculated_monthly_repayment_amount = basic_salary * \
+                loan_installment_deduction_percentage if loan_installment_deduction_percentage else 0
 
             return {
                 "loan_amount": calculated_loan_amount,
@@ -90,11 +99,16 @@ def calculate_employee_loan_amount(loan_product , applicant , loan_eligibility_m
                 "basic_salary": basic_salary
             }
         else:
-            frappe.throw(f"No active Salary Structure Assignment found for Employee {applicant}")
+            frappe.throw(
+                f"No active Salary Structure Assignment found for Employee {applicant}")
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Error in calculate_employee_loan_amount")
-        frappe.throw(f"An error occurred during loan calculation: {str(e)}")
+        frappe.log_error(
+            "[api.py] method: calculate_employee_loan_amount",
+            "Employee Loan Calculation",
+        )
+        frappe.throw(_("Error calculating employee loan amount"))
+
 
 @frappe.whitelist()
 def create_expense_claim_from_travel_request(travel_request_name):
@@ -107,7 +121,8 @@ def create_expense_claim_from_travel_request(travel_request_name):
     travel_request_doc = frappe.get_doc("Travel Request", travel_request_name)
 
     if travel_request_doc.docstatus != 1:
-        frappe.throw("Expense Claim can only be created from a submitted Travel Request.")
+        frappe.throw(
+            "Expense Claim can only be created from a submitted Travel Request.")
 
     # Create a new Expense Claim document
     expense_claim = frappe.new_doc("Expense Claim")
@@ -115,19 +130,20 @@ def create_expense_claim_from_travel_request(travel_request_name):
     # Set main fields
     expense_claim.employee = travel_request_doc.employee
     expense_claim.employee_name = travel_request_doc.employee_name
-    expense_claim.posting_date = getdate() # Set current date for posting date
-    expense_claim.department = frappe.db.get_value("Employee" , expense_claim.employee_name , 'Department')
+    expense_claim.posting_date = getdate()  # Set current date for posting date
+    expense_claim.department = frappe.db.get_value(
+        "Employee", expense_claim.employee_name, 'Department')
     expense_claim.custom_travel_request = travel_request_doc.name
-    
+
     # You might want to link the Expense Claim back to the Travel Request
     # Make sure 'travel_request' field exists in Expense Claim DocType or add it via Customize Form
     # expense_claim.travel_request = travel_request_doc.name
 
-
     # Add expenses from the 'expenses' child table of Travel Request
-    if travel_request_doc.get("costings"): # Assuming the child table is named 'expenses'
+    # Assuming the child table is named 'expenses'
+    if travel_request_doc.get("costings"):
         for expense_item in travel_request_doc.costings:
-            expense_claim.append("expenses", { # Assuming 'expenses' is the child table in Expense Claim too
+            expense_claim.append("expenses", {  # Assuming 'expenses' is the child table in Expense Claim too
                 "expense_date":  getdate(),
                 "expense_type": expense_item.expense_type,
                 "amount": expense_item.total_amount,
@@ -140,22 +156,28 @@ def create_expense_claim_from_travel_request(travel_request_name):
     else:
         frappe.msgprint("No expense items found in the Travel Request.")
 
-
     try:
-        expense_claim.insert(ignore_mandatory=True, ignore_permissions=True) # Insert the new document
+        # Insert the new document
+        expense_claim.insert(ignore_mandatory=True, ignore_permissions=True)
         # expense_claim.submit() # Optionally submit the expense claim automatically
 
-        frappe.db.commit() # Commit the changes to the database
+        frappe.db.commit()  # Commit the changes to the database
 
-        return expense_claim.name # Return the name of the new document
+        return expense_claim.name  # Return the name of the new document
     except Exception as e:
-        frappe.db.rollback() # Rollback if any error occurs
-        frappe.throw(f"Error creating Expense Claim: {frappe.utils.get_traceback()}")
+        frappe.db.rollback()  # Rollback if any error occurs
+        frappe.log_error(
+            "[api.py] method: create_expense_claim_from_travel_request",
+            "Expense Claim Creation",
+        )
+        frappe.throw(_("Error creating expense claim"))
+
 
 @frappe.whitelist()
-def calculate_employee_base(employee ):
+def calculate_employee_base(employee):
     try:
-        salary_structure_assignment_list = frappe.get_all("Salary Structure" , filters={"payroll_frequency" : "Monthly"} , pluck='name')
+        salary_structure_assignment_list = frappe.get_all(
+            "Salary Structure", filters={"payroll_frequency": "Monthly"}, pluck='name')
 
         salary_structure_assignment_data = frappe.db.get_value(
             "Salary Structure Assignment",
@@ -163,7 +185,7 @@ def calculate_employee_base(employee ):
                 "employee": employee,
                 "from_date": ("<=", today()),
                 "docstatus": 1,
-                "salary_structure": ["in" , salary_structure_assignment_list],
+                "salary_structure": ["in", salary_structure_assignment_list],
             },
             "*",
             order_by="from_date desc",
@@ -173,18 +195,22 @@ def calculate_employee_base(employee ):
         if salary_structure_assignment_data:
             salary_structure_assignment_name = salary_structure_assignment_data.name
 
-            basic_salary = float(frappe.db.get_value("Salary Structure Assignment", salary_structure_assignment_name, 'custom_basic_salary') or 0.0)
-            
+            basic_salary = float(frappe.db.get_value(
+                "Salary Structure Assignment", salary_structure_assignment_name, 'custom_basic_salary') or 0.0)
+
             return {
                 "basic_salary": basic_salary
             }
         else:
-            frappe.throw(f"No active Salary Structure Assignment found for Employee {applicant}")
+            frappe.throw(
+                f"No active Salary Structure Assignment found for Employee {employee}")
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Error in calculate_employee_loan_amount")
-        frappe.throw(f"An error occurred during loan calculation: {str(e)}")
-
+        frappe.log_error(
+            "[api.py] method: calculate_employee_base",
+            "Employee Base Calculation",
+        )
+        frappe.throw(_("Error calculating employee base"))
 
 
 @frappe.whitelist()
@@ -197,7 +223,8 @@ def get_additional_salaries(employee, start_date, end_date, component_type):
 
     additional_sal = frappe.qb.DocType("Additional Salary")
     component_field = additional_sal.salary_component.as_("component")
-    overwrite_field = additional_sal.overwrite_salary_structure_amount.as_("overwrite")
+    overwrite_field = additional_sal.overwrite_salary_structure_amount.as_(
+        "overwrite")
 
     amount_sum = Sum(additional_sal.amount).as_("amount")
     additional_salary_list = (
@@ -206,14 +233,14 @@ def get_additional_salaries(employee, start_date, end_date, component_type):
             additional_sal.name,
             component_field,
             additional_sal.type,
-            amount_sum, 
+            amount_sum,
             additional_sal.is_recurring,
             overwrite_field,
             additional_sal.deduct_full_tax_on_selected_payroll_date,
         )
         .groupby(
             component_field
-            )
+        )
         .where(
             (additional_sal.employee == employee)
             & (additional_sal.docstatus == 1)
@@ -241,7 +268,6 @@ def get_additional_salaries(employee, start_date, end_date, component_type):
         )
         .run(as_dict=True)
     )
-
 
     additional_salaries = []
     components_to_overwrite = []
