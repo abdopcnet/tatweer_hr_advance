@@ -94,78 +94,84 @@ def create_bulk_leave_allocations(bulk_allocation_name):
     """
     Create Leave Allocation documents in background for all employees in the bulk allocation
     """
-    if not bulk_allocation_name:
-        frappe.throw(_("Bulk Allocation document name is required"))
+    try:
+        if not bulk_allocation_name:
+            frappe.throw(_("Bulk Allocation document name is required"))
 
-    # Get the bulk allocation document
-    bulk_doc = frappe.get_doc("Bulk Leave allocation", bulk_allocation_name)
+        # Get the bulk allocation document
+        bulk_doc = frappe.get_doc(
+            "Bulk Leave allocation", bulk_allocation_name)
 
-    if not bulk_doc.bulk_leave_allocation_table or len(bulk_doc.bulk_leave_allocation_table) == 0:
-        frappe.throw(_("No employees found in the table"))
+        if not bulk_doc.bulk_leave_allocation_table or len(bulk_doc.bulk_leave_allocation_table) == 0:
+            frappe.throw(_("No employees found in the table"))
 
-    success_count = 0
-    failed_count = 0
-    failed = []
+        success_count = 0
+        failed_count = 0
+        failed = []
 
-    for row in bulk_doc.bulk_leave_allocation_table:
-        try:
-            # Validate dates
-            from_date = getdate(row.from_date or bulk_doc.from_date)
-            to_date = getdate(row.to_date or bulk_doc.to_date)
+        for row in bulk_doc.bulk_leave_allocation_table:
+            try:
+                # Validate dates
+                from_date = getdate(row.from_date or bulk_doc.from_date)
+                to_date = getdate(row.to_date or bulk_doc.to_date)
 
-            if date_diff(to_date, from_date) <= 0:
-                raise ValueError(_("To date cannot be before from date"))
+                if date_diff(to_date, from_date) <= 0:
+                    raise ValueError(_("To date cannot be before from date"))
 
-            # Check if allocation already exists
-            existing = frappe.db.exists(
-                "Leave Allocation",
-                {
-                    "employee": row.employee,
-                    "leave_type": row.leave_type or bulk_doc.leave_type,
-                    "from_date": from_date,
-                    "to_date": to_date,
-                    "docstatus": ("!=", 2),  # Not cancelled
-                },
-            )
-            if existing:
-                raise ValueError(
-                    _("Leave Allocation already exists for this employee and period"))
+                # Check if allocation already exists
+                existing = frappe.db.exists(
+                    "Leave Allocation",
+                    {
+                        "employee": row.employee,
+                        "leave_type": row.leave_type or bulk_doc.leave_type,
+                        "from_date": from_date,
+                        "to_date": to_date,
+                        "docstatus": ("!=", 2),  # Not cancelled
+                    },
+                )
+                if existing:
+                    raise ValueError(
+                        _("Leave Allocation already exists for this employee and period"))
 
-            # Create Leave Allocation document
-            leave_allocation = frappe.new_doc("Leave Allocation")
-            leave_allocation.employee = row.employee
-            leave_allocation.leave_type = row.leave_type or bulk_doc.leave_type
-            leave_allocation.from_date = from_date
-            leave_allocation.to_date = to_date
-            leave_allocation.new_leaves_allocated = flt(
-                row.new_leaves_allocated, 2)
-            leave_allocation.carry_forward = row.carry_forward if row.carry_forward is not None else 1
+                # Create Leave Allocation document
+                leave_allocation = frappe.new_doc("Leave Allocation")
+                leave_allocation.employee = row.employee
+                leave_allocation.leave_type = row.leave_type or bulk_doc.leave_type
+                leave_allocation.from_date = from_date
+                leave_allocation.to_date = to_date
+                leave_allocation.new_leaves_allocated = flt(
+                    row.new_leaves_allocated, 2)
+                leave_allocation.carry_forward = row.carry_forward if row.carry_forward is not None else 1
 
-            # Calculate total leaves allocated
-            leave_allocation.set_total_leaves_allocated()
+                # Calculate total leaves allocated
+                leave_allocation.set_total_leaves_allocated()
 
-            # Save and submit
-            leave_allocation.insert(ignore_permissions=True)
-            leave_allocation.submit()
+                # Save and submit
+                leave_allocation.insert(ignore_permissions=True)
+                leave_allocation.submit()
 
-            success_count += 1
-        except Exception as e:
-            failed_count += 1
-            error_msg = str(e)
-            failed.append(
-                {
-                    "employee": row.employee,
-                    "employee_name": row.employee_name or row.employee,
-                    "error": error_msg,
-                }
-            )
-            frappe.log_error(
-                f"[bulk_leave_allocation.py] method: create_bulk_leave_allocations - Employee: {row.employee}",
-                "Bulk Leave Allocation",
-            )
+                success_count += 1
+            except Exception as e:
+                # Individual employee errors - don't log, just collect
+                failed_count += 1
+                error_msg = str(e)
+                failed.append(
+                    {
+                        "employee": row.employee,
+                        "employee_name": row.employee_name or row.employee,
+                        "error": error_msg,
+                    }
+                )
 
-    return {
-        "success_count": success_count,
-        "failed_count": failed_count,
-        "failed": failed,
-    }
+        return {
+            "success_count": success_count,
+            "failed_count": failed_count,
+            "failed": failed,
+        }
+    except Exception as e:
+        # Function failed completely - log error
+        frappe.log_error(
+            "[bulk_leave_allocation.py] method: create_bulk_leave_allocations",
+            "Bulk Leave Allocation",
+        )
+        frappe.throw(_("Error creating bulk leave allocations"))
