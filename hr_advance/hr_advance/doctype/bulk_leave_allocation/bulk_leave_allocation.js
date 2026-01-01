@@ -54,10 +54,6 @@ frappe.ui.form.on('Bulk Leave allocation', {
 							row.employee = employee.employee;
 							row.employee_name = employee.employee_name;
 							row.department = employee.department || '';
-							row.company = employee.company;
-							row.leave_type = employee.leave_type;
-							row.from_date = employee.from_date;
-							row.to_date = employee.to_date;
 							row.carry_forward =
 								employee.carry_forward !== undefined
 									? employee.carry_forward
