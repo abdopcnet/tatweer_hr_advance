@@ -1,6 +1,6 @@
 # Hr Advance
 
-![Version](https://img.shields.io/badge/version-31.12.2025-blue)
+![Version](https://img.shields.io/badge/version-1.1.2026-blue)
 
 Advanced HR management features in compliance with Libyan labor regulations.
 
