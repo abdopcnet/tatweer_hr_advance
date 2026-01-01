@@ -62,12 +62,8 @@ frappe.ui.form.on('Bulk Leave allocation', {
 									: 0;
 							row.total_leaves_allocated = employee.total_leaves_allocated || 0;
 
-							// If yearly_leave_type = 1, copy total_leaves_allocated to new_leaves_allocated
-							if (cint(frm.doc.yearly_leave_type) === 1) {
-								row.new_leaves_allocated = row.total_leaves_allocated || 0;
-							} else {
-								row.new_leaves_allocated = 0;
-							}
+							// Always set new_leaves_allocated to 0 (user can enter manually if needed)
+							row.new_leaves_allocated = 0;
 						});
 
 						frm.refresh_field('bulk_leave_allocation_table');
@@ -139,10 +135,16 @@ frappe.ui.form.on('Bulk Leave allocation', {
 										// Build message with better formatting
 										let fullMessage = '';
 										if (message) {
-											fullMessage = '<div style="margin-bottom: 15px;">' + message + '</div>';
+											fullMessage =
+												'<div style="margin-bottom: 15px;">' +
+												message +
+												'</div>';
 										}
-										fullMessage += '<div style="margin-bottom: 10px; font-weight: bold;">' +
-											__('فشل إنشاء {0} تخصيص إجازة:', [r.message.failed_count || 0]) +
+										fullMessage +=
+											'<div style="margin-bottom: 10px; font-weight: bold;">' +
+											__('فشل إنشاء {0} تخصيص إجازة:', [
+												r.message.failed_count || 0,
+											]) +
 											'</div>';
 
 										// Create styled list for errors
@@ -150,7 +152,9 @@ frappe.ui.form.on('Bulk Leave allocation', {
 										r.message.failed.forEach(function (item) {
 											fullMessage +=
 												'<div style="margin-bottom: 10px; padding: 8px; background-color: #fff3cd; border-right: 3px solid #ffc107; border-radius: 3px;">' +
-												'<strong>' + (item.employee_name || item.employee) + ':</strong><br>' +
+												'<strong>' +
+												(item.employee_name || item.employee) +
+												':</strong><br>' +
 												'<span style="color: #856404;">' +
 												(item.error || __('خطأ غير معروف')) +
 												'</span></div>';
@@ -195,13 +199,8 @@ frappe.ui.form.on('Bulk Leave allocation', {
 			frm.doc.bulk_leave_allocation_table.length > 0
 		) {
 			frm.doc.bulk_leave_allocation_table.forEach(function (row) {
-				if (cint(frm.doc.yearly_leave_type) === 1) {
-					// Copy total_leaves_allocated to new_leaves_allocated
-					row.new_leaves_allocated = row.total_leaves_allocated || 0;
-				} else {
-					// Clear new_leaves_allocated if yearly_leave_type = 0
-					row.new_leaves_allocated = 0;
-				}
+				// Keep existing new_leaves_allocated value (user can enter manually)
+				// Don't copy from total_leaves_allocated
 			});
 			frm.refresh_field('bulk_leave_allocation_table');
 		}
@@ -217,18 +216,7 @@ frappe.ui.form.on('Bulk Leave allocation', {
 
 // Handle child table changes
 frappe.ui.form.on('Bulk Leave allocation Table', {
-	total_leaves_allocated: function (frm, cdt, cdn) {
-		let row = locals[cdt][cdn];
-		// If yearly_leave_type = 1, copy total_leaves_allocated to new_leaves_allocated
-		if (cint(frm.doc.yearly_leave_type) === 1) {
-			frappe.model.set_value(
-				cdt,
-				cdn,
-				'new_leaves_allocated',
-				row.total_leaves_allocated || 0,
-			);
-		}
-	},
+	// Removed total_leaves_allocated handler - new_leaves_allocated should not copy from total_leaves_allocated
 
 	carry_forward: function (frm, cdt, cdn) {
 		let row = locals[cdt][cdn];
