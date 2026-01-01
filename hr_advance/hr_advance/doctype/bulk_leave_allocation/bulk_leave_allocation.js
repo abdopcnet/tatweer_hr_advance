@@ -121,7 +121,7 @@ frappe.ui.form.on('Bulk Leave allocation', {
 
 									// Show success count
 									if (r.message.success_count > 0) {
-										message = __('Created {0} Leave Allocation document(s).', [
+										message = __('تم إنشاء {0} تخصيص إجازة.', [
 											r.message.success_count || 0,
 										]);
 									}
@@ -129,48 +129,40 @@ frappe.ui.form.on('Bulk Leave allocation', {
 									// Show failed allocations if any
 									if (r.message.failed && r.message.failed.length > 0) {
 										if (r.message.success_count > 0) {
-											title = __('Partial Success');
+											title = __('نجح جزئياً');
 											indicator = 'orange';
 										} else {
-											title = __('Failed');
+											title = __('فشل');
 											indicator = 'red';
 										}
 
-										// Build message with HTML table
+										// Build message with better formatting
 										let fullMessage = '';
 										if (message) {
-											fullMessage = message + '<hr>';
+											fullMessage = '<div style="margin-bottom: 15px;">' + message + '</div>';
 										}
-										fullMessage += __(
-											'Failed to create {0} Leave Allocation(s):',
-											[r.message.failed_count || 0],
-										);
-										fullMessage += '<br><br>';
+										fullMessage += '<div style="margin-bottom: 10px; font-weight: bold;">' +
+											__('فشل إنشاء {0} تخصيص إجازة:', [r.message.failed_count || 0]) +
+											'</div>';
 
-										// Create HTML table
-										fullMessage +=
-											"<table class='table table-bordered'><tr><th>" +
-											__('Employee') +
-											'</th><th>' +
-											__('Error') +
-											'</th></tr>';
-
+										// Create styled list for errors
+										fullMessage += '<div style="margin-top: 10px;">';
 										r.message.failed.forEach(function (item) {
 											fullMessage +=
-												'<tr><td>' +
-												(item.employee_name || item.employee) +
-												'</td><td>' +
-												(item.error || __('Unknown error')) +
-												'</td></tr>';
+												'<div style="margin-bottom: 10px; padding: 8px; background-color: #fff3cd; border-right: 3px solid #ffc107; border-radius: 3px;">' +
+												'<strong>' + (item.employee_name || item.employee) + ':</strong><br>' +
+												'<span style="color: #856404;">' +
+												(item.error || __('خطأ غير معروف')) +
+												'</span></div>';
 										});
-
-										fullMessage += '</table>';
+										fullMessage += '</div>';
 
 										frappe.msgprint({
 											title: title,
 											message: fullMessage,
 											indicator: indicator,
 											is_minimizable: true,
+											wide: true,
 										});
 									} else {
 										// All succeeded
