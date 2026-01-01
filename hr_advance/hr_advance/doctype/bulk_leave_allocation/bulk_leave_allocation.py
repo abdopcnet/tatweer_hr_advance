@@ -19,15 +19,14 @@ def get_active_employees(company, leave_type, from_date, to_date, department=Non
     Get active employees with their leave balances
     """
     if not company or not leave_type or not from_date or not to_date:
-        frappe.throw(
-            _("Company, Leave Type, From Date, and To Date are required"))
+        frappe.throw(_("يرجى تحديد جميع الحقول المطلوبة"))
 
     # Validate dates - use exact dates provided by user
     from_date_obj = getdate(from_date)
     to_date_obj = getdate(to_date)
     
     if date_diff(to_date_obj, from_date_obj) <= 0:
-        frappe.throw(_("To date cannot be before from date"))
+        frappe.throw(_("تاريخ النهاية لا يمكن أن يكون قبل تاريخ البداية"))
 
     # Build filters for employees
     filters = {
@@ -92,14 +91,14 @@ def create_bulk_leave_allocations(bulk_allocation_name):
     """
     try:
         if not bulk_allocation_name:
-            frappe.throw(_("Bulk Allocation document name is required"))
+            frappe.throw(_("اسم المستند مطلوب"))
 
         # Get the bulk allocation document
         bulk_doc = frappe.get_doc(
             "Bulk Leave allocation", bulk_allocation_name)
 
         if not bulk_doc.bulk_leave_allocation_table or len(bulk_doc.bulk_leave_allocation_table) == 0:
-            frappe.throw(_("No employees found in the table"))
+            frappe.throw(_("لا يوجد موظفين في الجدول"))
 
         success_count = 0
         failed_count = 0
@@ -107,20 +106,20 @@ def create_bulk_leave_allocations(bulk_allocation_name):
 
         # Validate required fields from bulk doc
         if not bulk_doc.company:
-            frappe.throw(_("Company is required in Bulk Leave Allocation"))
+            frappe.throw(_("الشركة مطلوبة"))
         if not bulk_doc.leave_type:
-            frappe.throw(_("Leave Type is required in Bulk Leave Allocation"))
+            frappe.throw(_("نوع الإجازة مطلوب"))
         if not bulk_doc.from_date:
-            frappe.throw(_("From Date is required in Bulk Leave Allocation"))
+            frappe.throw(_("تاريخ البداية مطلوب"))
         if not bulk_doc.to_date:
-            frappe.throw(_("To Date is required in Bulk Leave Allocation"))
+            frappe.throw(_("تاريخ النهاية مطلوب"))
 
         # Use dates from bulk doc
         from_date = getdate(bulk_doc.from_date)
         to_date = getdate(bulk_doc.to_date)
 
         if date_diff(to_date, from_date) <= 0:
-            frappe.throw(_("To date cannot be before from date"))
+            frappe.throw(_("تاريخ النهاية لا يمكن أن يكون قبل تاريخ البداية"))
 
         for row in bulk_doc.bulk_leave_allocation_table:
             try:
@@ -136,8 +135,7 @@ def create_bulk_leave_allocations(bulk_allocation_name):
                     },
                 )
                 if existing:
-                    raise ValueError(
-                        _("Leave Allocation already exists for this employee and period"))
+                    raise ValueError(_("يوجد تخصيص إجازة موجود مسبقاً لهذا الموظف في هذه الفترة"))
 
                 # Create Leave Allocation document
                 leave_allocation = frappe.new_doc("Leave Allocation")
@@ -160,11 +158,7 @@ def create_bulk_leave_allocations(bulk_allocation_name):
 
                 if date_difference < leave_allocation.total_leaves_allocated and not allow_over_allocation:
                     raise ValueError(
-                        _(
-                            "Total Leaves Allocated ({0}) are more than the number of days in the allocation period ({1}). "
-                            "Either reduce New Leaves Allocated, disable Carry Forward, or enable 'Allow Over Allocation' "
-                            "in Leave Type settings."
-                        ).format(
+                        _("أنت تسجل رصيد إجازات ({0}) يوم أكبر من مدة العمل ({1}) يوم").format(
                             leave_allocation.total_leaves_allocated,
                             date_difference
                         )
@@ -198,4 +192,4 @@ def create_bulk_leave_allocations(bulk_allocation_name):
             "[bulk_leave_allocation.py] method: create_bulk_leave_allocations",
             "Bulk Leave Allocation",
         )
-        frappe.throw(_("Error creating bulk leave allocations"))
+        frappe.throw(_("خطأ في إنشاء التخصيصات الجماعية"))
