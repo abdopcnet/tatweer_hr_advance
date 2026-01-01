@@ -76,10 +76,6 @@ def get_active_employees(company, leave_type, from_date, to_date, department=Non
                 "employee": employee.name,
                 "employee_name": employee.employee_name,
                 "department": employee.department or "",
-                "company": employee.company,
-                "leave_type": leave_type,
-                "from_date": from_date,
-                "to_date": to_date,
                 "new_leaves_allocated": default_new_leaves_allocated,
                 "carry_forward": default_carry_forward,
                 "total_leaves_allocated": flt(total_leaves_allocated, 2),
@@ -109,21 +105,31 @@ def create_bulk_leave_allocations(bulk_allocation_name):
         failed_count = 0
         failed = []
 
+        # Validate required fields from bulk doc
+        if not bulk_doc.company:
+            frappe.throw(_("Company is required in Bulk Leave Allocation"))
+        if not bulk_doc.leave_type:
+            frappe.throw(_("Leave Type is required in Bulk Leave Allocation"))
+        if not bulk_doc.from_date:
+            frappe.throw(_("From Date is required in Bulk Leave Allocation"))
+        if not bulk_doc.to_date:
+            frappe.throw(_("To Date is required in Bulk Leave Allocation"))
+
+        # Use dates from bulk doc
+        from_date = getdate(bulk_doc.from_date)
+        to_date = getdate(bulk_doc.to_date)
+
+        if date_diff(to_date, from_date) <= 0:
+            frappe.throw(_("To date cannot be before from date"))
+
         for row in bulk_doc.bulk_leave_allocation_table:
             try:
-                # Validate dates - use exact dates from row or bulk doc
-                from_date = getdate(row.from_date or bulk_doc.from_date)
-                to_date = getdate(row.to_date or bulk_doc.to_date)
-
-                if date_diff(to_date, from_date) <= 0:
-                    raise ValueError(_("To date cannot be before from date"))
-
                 # Check if allocation already exists
                 existing = frappe.db.exists(
                     "Leave Allocation",
                     {
                         "employee": row.employee,
-                        "leave_type": row.leave_type or bulk_doc.leave_type,
+                        "leave_type": bulk_doc.leave_type,
                         "from_date": from_date,
                         "to_date": to_date,
                         "docstatus": ("!=", 2),  # Not cancelled
@@ -136,7 +142,7 @@ def create_bulk_leave_allocations(bulk_allocation_name):
                 # Create Leave Allocation document
                 leave_allocation = frappe.new_doc("Leave Allocation")
                 leave_allocation.employee = row.employee
-                leave_allocation.leave_type = row.leave_type or bulk_doc.leave_type
+                leave_allocation.leave_type = bulk_doc.leave_type
                 leave_allocation.from_date = from_date
                 leave_allocation.to_date = to_date
                 leave_allocation.new_leaves_allocated = flt(
