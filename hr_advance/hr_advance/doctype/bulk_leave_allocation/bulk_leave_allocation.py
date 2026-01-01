@@ -22,9 +22,10 @@ def get_active_employees(company, leave_type, from_date, to_date, department=Non
         frappe.throw(
             _("Company, Leave Type, From Date, and To Date are required"))
 
-    # Validate dates
+    # Validate dates - use exact dates provided by user
     from_date_obj = getdate(from_date)
     to_date_obj = getdate(to_date)
+    
     if date_diff(to_date_obj, from_date_obj) <= 0:
         frappe.throw(_("To date cannot be before from date"))
 
@@ -45,7 +46,6 @@ def get_active_employees(company, leave_type, from_date, to_date, department=Non
     )
 
     # Determine carry_forward and new_leaves_allocated based on yearly_leave_type
-    yearly_leave_type = int(yearly_leave_type) if yearly_leave_type else 0
     default_carry_forward = 0 if yearly_leave_type == 0 else 1
     default_new_leaves_allocated = 0.0
 
@@ -111,7 +111,7 @@ def create_bulk_leave_allocations(bulk_allocation_name):
 
         for row in bulk_doc.bulk_leave_allocation_table:
             try:
-                # Validate dates
+                # Validate dates - use exact dates from row or bulk doc
                 from_date = getdate(row.from_date or bulk_doc.from_date)
                 to_date = getdate(row.to_date or bulk_doc.to_date)
 
@@ -145,6 +145,24 @@ def create_bulk_leave_allocations(bulk_allocation_name):
 
                 # Calculate total leaves allocated
                 leave_allocation.set_total_leaves_allocated()
+
+                # Validate total leaves allocated before insertion
+                date_difference = date_diff(to_date, from_date) + 1
+                allow_over_allocation = frappe.db.get_value(
+                    "Leave Type", leave_allocation.leave_type, "allow_over_allocation"
+                )
+
+                if date_difference < leave_allocation.total_leaves_allocated and not allow_over_allocation:
+                    raise ValueError(
+                        _(
+                            "Total Leaves Allocated ({0}) are more than the number of days in the allocation period ({1}). "
+                            "Either reduce New Leaves Allocated, disable Carry Forward, or enable 'Allow Over Allocation' "
+                            "in Leave Type settings."
+                        ).format(
+                            leave_allocation.total_leaves_allocated,
+                            date_difference
+                        )
+                    )
 
                 # Save and submit
                 leave_allocation.insert(ignore_permissions=True)
