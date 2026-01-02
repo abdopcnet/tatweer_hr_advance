@@ -39,7 +39,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Leave Type",
-   "link_filters": "[[\"Leave Type\",\"is_carry_forward\",\"=\",1]]",
+   "link_filters": "[]",
    "options": "Leave Type",
    "reqd": 1
   },
@@ -106,7 +106,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-02 03:32:19.160119",
+ "modified": "2026-01-02 03:38:49.194058",
  "modified_by": "Administrator",
  "module": "Hr Advance",
  "name": "Bulk Leave allocation",
