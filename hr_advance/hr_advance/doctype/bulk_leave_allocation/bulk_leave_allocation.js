@@ -49,17 +49,15 @@ frappe.ui.form.on('Bulk Leave allocation', {
 						frm.clear_table('bulk_leave_allocation_table');
 
 						// Add employees to child table
+						// Always use yearly_leave_type as the source of truth for carry_forward
+						let carry_forward_value = cint(frm.doc.yearly_leave_type) === 1 ? 1 : 0;
 						r.message.forEach(function (employee) {
 							let row = frm.add_child('bulk_leave_allocation_table');
 							row.employee = employee.employee;
 							row.employee_name = employee.employee_name;
 							row.department = employee.department || '';
-							row.carry_forward =
-								employee.carry_forward !== undefined
-									? employee.carry_forward
-									: cint(frm.doc.yearly_leave_type) === 1
-									? 1
-									: 0;
+							// Always set carry_forward based on yearly_leave_type (ignore server response)
+							row.carry_forward = carry_forward_value;
 							row.total_leaves_allocated = employee.total_leaves_allocated || 0;
 
 							// Always set new_leaves_allocated to 0 (user can enter manually if needed)
@@ -193,24 +191,31 @@ frappe.ui.form.on('Bulk Leave allocation', {
 	},
 
 	yearly_leave_type: function (frm) {
-		// When yearly_leave_type changes, update all rows in child table
+		// When yearly_leave_type changes, update carry_forward for all rows in child table
 		if (
 			frm.doc.bulk_leave_allocation_table &&
 			frm.doc.bulk_leave_allocation_table.length > 0
 		) {
+			let carry_forward_value = cint(frm.doc.yearly_leave_type) === 1 ? 1 : 0;
 			frm.doc.bulk_leave_allocation_table.forEach(function (row) {
-				// Keep existing new_leaves_allocated value (user can enter manually)
-				// Don't copy from total_leaves_allocated
+				frappe.model.set_value(
+					row.doctype,
+					row.name,
+					'carry_forward',
+					carry_forward_value,
+				);
 			});
 			frm.refresh_field('bulk_leave_allocation_table');
 		}
 
 		// Update required property for new_leaves_allocated in child table
-		frm.fields_dict.bulk_leave_allocation_table.grid.update_docfield_property(
-			'new_leaves_allocated',
-			'reqd',
-			cint(frm.doc.yearly_leave_type) === 0 ? 1 : 0,
-		);
+		if (frm.fields_dict.bulk_leave_allocation_table) {
+			frm.fields_dict.bulk_leave_allocation_table.grid.update_docfield_property(
+				'new_leaves_allocated',
+				'reqd',
+				cint(frm.doc.yearly_leave_type) === 0 ? 1 : 0,
+			);
+		}
 	},
 });
 
